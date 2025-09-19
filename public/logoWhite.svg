@@ -1,0 +1,39 @@
+<svg width="609" height="489" viewBox="0 0 609 489" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- CashLab Logo - Laboratory theme with modern design (White version) -->
+  <!-- Main flask/test tube shape -->
+  <path d="M120 65C120 57.7157 125.716 52 133 52H145C152.284 52 158 57.7157 158 65V380C158 387.284 152.284 393 145 393H133C125.716 393 120 387.284 120 380V65Z" fill="white"/>
+  
+  <!-- Liquid level in flask -->
+  <path d="M125 290C125 285.582 128.582 282 133 282H145C149.418 282 153 285.582 153 290V380C153 384.418 149.418 388 145 388H133C128.582 388 125 384.418 125 380V290Z" fill="#10B981"/>
+  
+  <!-- Dollar sign in the center -->
+  <path d="M135 85C138.866 85 142 88.134 142 92V102C142 105.866 138.866 109 135 109H132C128.134 109 125 105.866 125 102V97C125 93.134 128.134 90 132 90H135Z" fill="#1E40AF"/>
+  <path d="M135 155C138.866 155 142 158.134 142 162V172C142 175.866 138.866 179 135 179H132C128.134 179 125 175.866 125 172V167C125 163.134 128.134 160 132 160H135Z" fill="#1E40AF"/>
+  
+  <!-- Second flask/test tube -->
+  <path d="M250 100C250 92.7157 255.716 87 263 87H275C282.284 87 288 92.7157 288 100V380C288 387.284 282.284 393 275 393H263C255.716 393 250 387.284 250 380V100Z" fill="white"/>
+  
+  <!-- Liquid level in second flask -->
+  <path d="M255 315C255 310.582 258.582 307 263 307H275C279.418 307 283 310.582 283 315V380C283 384.418 279.418 388 275 388H263C258.582 388 255 384.418 255 380V315Z" fill="#10B981"/>
+  
+  <!-- Third flask/test tube -->
+  <path d="M380 75C380 67.7157 385.716 62 393 62H405C412.284 62 418 67.7157 418 75V380C418 387.284 412.284 393 405 393H393C385.716 393 380 387.284 380 380V75Z" fill="white"/>
+  
+  <!-- Liquid level in third flask -->
+  <path d="M385 265C385 260.582 388.582 257 393 257H405C409.418 257 413 260.582 413 265V380C413 384.418 409.418 388 405 388H393C388.582 388 385 384.418 385 380V265Z" fill="#10B981"/>
+  
+  <!-- Lab stand/base -->
+  <rect x="80" y="400" width="450" height="32" rx="16" fill="white"/>
+  
+  <!-- Connection lines between flasks -->
+  <line x1="158" y1="210" x2="250" y2="235" stroke="white" stroke-width="16" stroke-linecap="round"/>
+  <line x1="288" y1="245" x2="380" y2="220" stroke="white" stroke-width="16" stroke-linecap="round"/>
+  
+  <!-- Lab equipment details -->
+  <!-- Bunsen burner flame -->
+  <path d="M450 420C450 415.582 453.582 412 458 412H462C466.418 412 470 415.582 470 420V430C470 434.418 466.418 438 462 438H458C453.582 438 450 434.418 450 430V420Z" fill="#F59E0B"/>
+  
+  <!-- Microscope -->
+  <circle cx="520" cy="425" r="20" fill="white" stroke="#1E40AF" stroke-width="4"/>
+  <path d="M500 425L540 425" stroke="white" stroke-width="6" stroke-linecap="round"/>
+</svg>

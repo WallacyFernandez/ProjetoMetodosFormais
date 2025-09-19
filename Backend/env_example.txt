@@ -1,0 +1,52 @@
+# Configuração do Banco de Dados PostgreSQL
+DATABASE_URL=postgres://postgres:root@127.0.0.1:5432/back-contas-system
+
+# Configurações Django
+DJANGO_SETTINGS_MODULE=config.settings
+USE_DOCKER=No
+DJANGO_DEBUG=True
+SECRET_KEY=django-insecure-rb^d*f$7(=^j77rk5vbcauf_#q0p*c#bqank1#^_3n0i&grj80
+
+# URLs da aplicação
+FRONT_URL=http://localhost:3000/
+BACK_URL=http://localhost:8000/
+SERVER_LOCAL_URL=http://127.0.0.1:8000/
+
+# Hosts e CORS
+ALLOWED_HOSTS=localhost,127.0.0.1
+CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+CSRF_TRUSTED_ORIGINS=http://localhost:3000,http://127.0.0.1:8000
+
+# Redis/Cache e Celery
+REDIS_URL=redis://127.0.0.1:6379/1
+CELERY_BROKER_URL=redis://127.0.0.1:6379/0
+CELERY_RESULT_BACKEND=redis://127.0.0.1:6379/0
+
+# Configurações de Email (para desenvolvimento use console backend)
+EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_HOST_USER=
+EMAIL_HOST_PASSWORD=
+DJANGO_DEFAULT_FROM_EMAIL=
+
+# Configurações específicas do sistema
+PASSWORD_EXPIRATION_TIME=90
+TIME_ZONE_LOCALE=pt-br
+
+# Logs
+DJANGO_LOG_LEVEL=INFO
+
+# Debug Toolbar (apenas para desenvolvimento)
+ENABLE_DEBUG_TOOLBAR=False
+
+# ============================================
+# CONFIGURAÇÃO ALTERNATIVA (caso DATABASE_URL não funcione)
+# ============================================
+# DB_ENGINE=django.db.backends.postgresql
+# DB_NAME=back-contas-system
+# DB_USER=postgres
+# DB_PASSWORD=root
+# DB_HOST=127.0.0.1
+# DB_PORT=5432

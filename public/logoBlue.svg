@@ -1,0 +1,31 @@
+<svg width="73" height="58" viewBox="0 0 73 58" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- CashLab Logo - Laboratory theme with modern design -->
+  <!-- Main flask/test tube shape -->
+  <path d="M15 8C15 6.89543 15.8954 6 17 6H20C21.1046 6 22 6.89543 22 8V45C22 46.1046 21.1046 47 20 47H17C15.8954 47 15 46.1046 15 45V8Z" fill="#1E40AF"/>
+  
+  <!-- Liquid level in flask -->
+  <path d="M16 35C16 34.4477 16.4477 34 17 34H20C20.5523 34 21 34.4477 21 35V45C21 45.5523 20.5523 46 20 46H17C16.4477 46 16 45.5523 16 45V35Z" fill="#10B981"/>
+  
+  <!-- Dollar sign in the center -->
+  <path d="M18.5 12C19.3284 12 20 12.6716 20 13.5V15.5C20 16.3284 19.3284 17 18.5 17H17.5C16.6716 17 16 16.3284 16 15.5V14.5C16 13.6716 16.6716 13 17.5 13H18.5Z" fill="white"/>
+  <path d="M18.5 19C19.3284 19 20 19.6716 20 20.5V22.5C20 23.3284 19.3284 24 18.5 24H17.5C16.6716 24 16 23.3284 16 22.5V21.5C16 20.6716 16.6716 20 17.5 20H18.5Z" fill="white"/>
+  
+  <!-- Second flask/test tube -->
+  <path d="M30 12C30 10.8954 30.8954 10 32 10H35C36.1046 10 37 10.8954 37 12V45C37 46.1046 36.1046 47 35 47H32C30.8954 47 30 46.1046 30 45V12Z" fill="#1E40AF"/>
+  
+  <!-- Liquid level in second flask -->
+  <path d="M31 38C31 37.4477 31.4477 37 32 37H35C35.5523 37 36 37.4477 36 38V45C36 45.5523 35.5523 46 35 46H32C31.4477 46 31 45.5523 31 45V38Z" fill="#10B981"/>
+  
+  <!-- Third flask/test tube -->
+  <path d="M45 6C45 4.89543 45.8954 4 47 4H50C51.1046 4 52 4.89543 52 6V45C52 46.1046 51.1046 47 50 47H47C45.8954 47 45 46.1046 45 45V6Z" fill="#1E40AF"/>
+  
+  <!-- Liquid level in third flask -->
+  <path d="M46 32C46 31.4477 46.4477 31 47 31H50C50.5523 31 51 31.4477 51 32V45C51 45.5523 50.5523 46 50 46H47C46.4477 46 46 45.5523 46 45V32Z" fill="#10B981"/>
+  
+  <!-- Lab stand/base -->
+  <rect x="10" y="48" width="53" height="4" rx="2" fill="#6B7280"/>
+  
+  <!-- Connection lines between flasks -->
+  <line x1="22" y1="25" x2="30" y2="28" stroke="#1E40AF" stroke-width="2" stroke-linecap="round"/>
+  <line x1="37" y1="30" x2="45" y2="26" stroke="#1E40AF" stroke-width="2" stroke-linecap="round"/>
+</svg>
