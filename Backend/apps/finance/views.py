@@ -2,20 +2,29 @@
 Views para o app de finanças.
 """
 
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
-from django.db import transaction
+from django.db import transaction, models
+from django.utils import timezone
 from decimal import Decimal
 
-from .models import UserBalance, BalanceHistory
+from .models import UserBalance, BalanceHistory, Category, Transaction
 from .serializers import (
     UserBalanceSerializer,
     BalanceOperationSerializer,
     BalanceSetSerializer,
-    BalanceHistorySerializer
+    BalanceHistorySerializer,
+    CategorySerializer,
+    TransactionSerializer,
+    TransactionCreateSerializer,
+    MonthlyReportSerializer,
+    MonthlySummarySerializer,
+    CategorySummarySerializer,
+    DashboardSerializer
 )
 
 
@@ -190,4 +199,198 @@ class UserBalanceViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
         
         serializer = BalanceHistorySerializer(history, many=True)
+        return Response(serializer.data)
+
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet para gerenciar categorias de transações.
+    """
+    serializer_class = CategorySerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['category_type', 'is_default']
+    search_fields = ['name', 'description']
+    ordering_fields = ['name', 'created_at']
+    ordering = ['name']
+
+    def get_queryset(self):
+        """Retorna categorias disponíveis para o usuário (padrão + personalizadas)."""
+        return Category.get_user_categories(self.request.user)
+
+    @action(detail=False, methods=['get'])
+    def defaults(self, request):
+        """Retorna apenas as categorias padrão do sistema."""
+        categories = Category.get_default_categories()
+        serializer = self.get_serializer(categories, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def custom(self, request):
+        """Retorna apenas as categorias personalizadas do usuário."""
+        categories = Category.objects.filter(user=request.user)
+        serializer = self.get_serializer(categories, many=True)
+        return Response(serializer.data)
+
+
+class TransactionViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet para gerenciar transações financeiras.
+    """
+    serializer_class = TransactionSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['transaction_type', 'category', 'is_recurring']
+    search_fields = ['description', 'subcategory']
+    ordering_fields = ['transaction_date', 'amount', 'created_at']
+    ordering = ['-transaction_date', '-created_at']
+
+    def get_queryset(self):
+        """Retorna apenas as transações do usuário autenticado."""
+        queryset = Transaction.objects.filter(user=self.request.user)
+        
+        # Filtros adicionais por query params
+        year = self.request.query_params.get('year')
+        month = self.request.query_params.get('month')
+        date_from = self.request.query_params.get('date_from')
+        date_to = self.request.query_params.get('date_to')
+        amount_min = self.request.query_params.get('amount_min')
+        amount_max = self.request.query_params.get('amount_max')
+
+        if year:
+            queryset = queryset.filter(transaction_date__year=year)
+        if month:
+            queryset = queryset.filter(transaction_date__month=month)
+        if date_from:
+            queryset = queryset.filter(transaction_date__gte=date_from)
+        if date_to:
+            queryset = queryset.filter(transaction_date__lte=date_to)
+        if amount_min:
+            queryset = queryset.filter(amount__gte=amount_min)
+        if amount_max:
+            queryset = queryset.filter(amount__lte=amount_max)
+
+        return queryset
+
+    def get_serializer_class(self):
+        """Usa serializer específico para criação."""
+        if self.action == 'create':
+            return TransactionCreateSerializer
+        return TransactionSerializer
+
+    @action(detail=False, methods=['get'])
+    def monthly_summary(self, request):
+        """Retorna resumo mensal de transações."""
+        # Pega ano e mês dos parâmetros ou usa atual
+        year = int(request.query_params.get('year', timezone.now().year))
+        month = int(request.query_params.get('month', timezone.now().month))
+        
+        # Valida os parâmetros
+        report_serializer = MonthlyReportSerializer(data={'year': year, 'month': month})
+        if not report_serializer.is_valid():
+            return Response(report_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # Gera o resumo
+        summary = Transaction.get_monthly_summary(request.user, year, month)
+        serializer = MonthlySummarySerializer(summary)
+        
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def category_summary(self, request):
+        """Retorna resumo por categoria."""
+        year = int(request.query_params.get('year', timezone.now().year))
+        month = int(request.query_params.get('month', timezone.now().month))
+        
+        # Valida os parâmetros
+        report_serializer = MonthlyReportSerializer(data={'year': year, 'month': month})
+        if not report_serializer.is_valid():
+            return Response(report_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # Gera o resumo por categoria
+        category_data = Transaction.get_category_summary(request.user, year, month)
+        
+        # Calcula o total para porcentagens
+        total_amount = sum(item['total'] for item in category_data)
+        
+        serializer = CategorySummarySerializer(
+            category_data, 
+            many=True,
+            context={'total_amount': total_amount}
+        )
+        
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def recent(self, request):
+        """Retorna as transações mais recentes."""
+        limit = int(request.query_params.get('limit', 10))
+        transactions = self.get_queryset()[:limit]
+        serializer = self.get_serializer(transactions, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def dashboard_data(self, request):
+        """Retorna dados completos para o dashboard."""
+        current_date = timezone.now()
+        
+        # Saldo atual
+        balance, _ = UserBalance.objects.get_or_create(
+            user=request.user,
+            defaults={'current_balance': Decimal('0.00')}
+        )
+        
+        # Resumo mensal atual
+        monthly_summary = Transaction.get_monthly_summary(
+            request.user, 
+            current_date.year, 
+            current_date.month
+        )
+        
+        # Resumo por categoria
+        category_summary = Transaction.get_category_summary(
+            request.user, 
+            current_date.year, 
+            current_date.month
+        )
+        
+        # Transações recentes
+        recent_transactions = Transaction.objects.filter(
+            user=request.user
+        ).order_by('-transaction_date', '-created_at')[:5]
+        
+        # Estatísticas gerais
+        total_transactions = Transaction.objects.filter(user=request.user).count()
+        
+        # Média mensal (últimos 6 meses)
+        six_months_ago = current_date - timezone.timedelta(days=180)
+        monthly_averages = Transaction.objects.filter(
+            user=request.user,
+            transaction_date__gte=six_months_ago
+        ).values('transaction_type').annotate(
+            avg_amount=models.Avg('amount')
+        )
+        
+        avg_income = Decimal('0.00')
+        avg_expense = Decimal('0.00')
+        for avg in monthly_averages:
+            if avg['transaction_type'] == 'INCOME':
+                avg_income = avg['avg_amount'] or Decimal('0.00')
+            else:
+                avg_expense = avg['avg_amount'] or Decimal('0.00')
+
+        # Prepara os dados
+        dashboard_data = {
+            'current_balance': balance.current_balance,
+            'current_balance_formatted': balance.balance_formatted,
+            'monthly_summary': monthly_summary,
+            'category_summary': category_summary,
+            'recent_transactions': recent_transactions,
+            'total_transactions_count': total_transactions,
+            'avg_monthly_income': avg_income,
+            'avg_monthly_expense': avg_expense,
+        }
+        
+        # Serializa os dados
+        serializer = DashboardSerializer(dashboard_data)
         return Response(serializer.data)
