@@ -9,7 +9,12 @@ import UseViewport from '@/hooks/UseViewport';
 
 interface PageHeaderProps {
   $title?: string,
+  $subtitle?: string,
   $buttons?: ButtonsConfig[],
+  actionButton?: {
+    text: string;
+    onClick: () => void;
+  },
   $isCollapsed?: boolean
 };
 
@@ -47,19 +52,27 @@ const ContainerButtons = styled.div<PageHeaderProps>`
   }
 `;
 
-export default function PageHeader({ $title, $buttons} : PageHeaderProps) {
+export default function PageHeader({ $title, $subtitle, $buttons, actionButton} : PageHeaderProps) {
   const { isCollapsed } = useContext(IsSidebarOnContext)
   const viewport = UseViewport()
 
   return (
     <Container>
-      <h2>{$title}</h2>
+      <div>
+        <h2>{$title}</h2>
+        {$subtitle && <p style={{ margin: '0.5rem 0 0 0', color: '#6b7280', fontSize: '0.9rem' }}>{$subtitle}</p>}
+      </div>
       <ContainerButtons $isCollapsed={isCollapsed}>
           {$buttons?.map((el) => (
             <Button onClick={el.action()} key={el.titleBtn} variant={el.type} disabled={!isCollapsed && !viewport}>
               {el.titleBtn}
             </Button>
           ))}
+          {actionButton && (
+            <Button onClick={actionButton.onClick} variant="primary">
+              {actionButton.text}
+            </Button>
+          )}
       </ContainerButtons>
     </Container>
   )

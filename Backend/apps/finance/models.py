@@ -334,7 +334,11 @@ class Transaction(BaseModel):
         old_transaction = None
         
         if not is_new:
-            old_transaction = Transaction.objects.get(pk=self.pk)
+            try:
+                old_transaction = Transaction.objects.get(pk=self.pk)
+            except Transaction.DoesNotExist:
+                # Se a transação não existe mais, trata como nova
+                is_new = True
 
         super().save(*args, **kwargs)
 

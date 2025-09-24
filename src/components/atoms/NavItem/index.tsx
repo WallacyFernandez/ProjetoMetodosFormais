@@ -1,8 +1,15 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { useRouter, usePathname } from 'next/navigation'
 import { styled } from 'styled-components';
-import { MdOutlineDashboardCustomize, MdHome } from "react-icons/md";
+import { 
+  MdOutlineDashboardCustomize, 
+  MdReceipt, 
+  MdAccountBalance, 
+  MdCategory, 
+  MdBarChart 
+} from "react-icons/md";
 
 interface RouteListProps {
   $active: boolean;
@@ -19,6 +26,11 @@ const RouteList = styled.li<RouteListProps>`
   padding: 8px 8px 8px 14px;
   border-radius: 20px;
   cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: ${({ theme, $active }) => $active ? theme.colors.white : 'rgba(255, 255, 255, 0.1)'};
+  }
 
   svg {
     height: 20px;
@@ -26,20 +38,47 @@ const RouteList = styled.li<RouteListProps>`
   }
 `;
 
-const Items = ['Dashboard', 'Example1', 'Example2', 'Example3']
+interface NavItem {
+  name: string;
+  icon: React.ReactNode;
+  path: string;
+}
+
+const Items: NavItem[] = [
+  { name: 'Dashboard', icon: <MdOutlineDashboardCustomize />, path: '/dashboard' },
+  { name: 'Transações', icon: <MdReceipt />, path: '/transacoes' },
+  { name: 'Saldo', icon: <MdAccountBalance />, path: '/saldo' },
+  { name: 'Categorias', icon: <MdCategory />, path: '/categorias' },
+  { name: 'Relatórios', icon: <MdBarChart />, path: '/relatorios' }
+];
 
 export default function NavItem() {
+  const router = useRouter()
+  const pathname = usePathname()
   const [ highlightedRoute, setHighlightedRoute ] = useState<string>('Dashboard');
+
+  // Atualiza o item ativo baseado na rota atual
+  useEffect(() => {
+    const currentItem = Items.find(item => item.path === pathname)
+    if (currentItem) {
+      setHighlightedRoute(currentItem.name)
+    }
+  }, [pathname])
+
+  const handleNavigation = (item: NavItem) => {
+    setHighlightedRoute(item.name)
+    router.push(item.path)
+  }
   
   return (
     <ul>
-      {Items.map((el) => (
+      {Items.map((item) => (
         <RouteList
-          key={el}
-          $active={highlightedRoute === el}
-          onClick={() => setHighlightedRoute(el)} 
+          key={item.name}
+          $active={highlightedRoute === item.name}
+          onClick={() => handleNavigation(item)} 
         >
-          <span>{el === 'Dashboard' ? <MdOutlineDashboardCustomize /> : <MdHome />}</span> {el}
+          <span>{item.icon}</span> {item.name}
         </RouteList>
       ))}
     </ul>

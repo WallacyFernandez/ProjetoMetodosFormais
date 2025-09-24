@@ -64,7 +64,11 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'apps.core.middleware.AuthenticationDebugMiddleware',  # Debug middleware
 ]
+
+# Garantir que CORS está no topo
+CORS_ALLOW_ALL_ORIGINS = DEBUG
 
 ROOT_URLCONF = 'config.urls'
 
@@ -160,7 +164,7 @@ AUTH_USER_MODEL = 'users.User'
 # Django REST Framework
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'apps.core.jwt_debug.DebugJWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
@@ -220,18 +224,36 @@ SIMPLE_JWT = {
 # CORS
 CORS_ALLOWED_ORIGINS = config(
     'CORS_ALLOWED_ORIGINS', 
-    default='http://localhost:3000,http://127.0.0.1:3000',
+    default='http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001,http://127.0.0.1:3001,http://localhost:3025,http://127.0.0.1:3025',
     cast=lambda v: [s.strip() for s in v.split(',')]
 )
 
 CORS_ALLOW_CREDENTIALS = True
 
+# Configurações adicionais de CORS para desenvolvimento
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
 # CSRF
 CSRF_TRUSTED_ORIGINS = config(
     'CSRF_TRUSTED_ORIGINS',
-    default='http://localhost:3000,http://127.0.0.1:8000',
+    default='http://localhost:3000,http://127.0.0.1:3000,http://localhost:3025,http://127.0.0.1:3025,http://127.0.0.1:8000',
     cast=lambda v: [s.strip() for s in v.split(',') if s.strip()]
 )
+
+# Desabilitar CSRF para APIs em desenvolvimento
+if DEBUG:
+    CSRF_COOKIE_SECURE = False
+    CSRF_COOKIE_HTTPONLY = False
 
 # Cache
 CACHES = {

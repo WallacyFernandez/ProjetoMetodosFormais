@@ -122,7 +122,9 @@ const ForgotPasswordCode = () => {
           {code.map((digit, index) => (
             <CodeInput
               key={index}
-              ref={(el) => (inputRefs.current[index] = el)}
+              ref={(el) => {
+                inputRefs.current[index] = el;
+              }}
               value={digit}
               onChange={(value) => handleCodeChange(index, value)}
               onKeyDown={(e) => handleKeyDown(index, e)}

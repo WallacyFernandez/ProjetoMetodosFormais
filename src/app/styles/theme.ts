@@ -40,6 +40,14 @@ const theme = {
     lightText: '#F9FAFB',
     background: '#FFFFFF',
     backgroundSecondary: '#F8FAFC',
+    backgroundTertiary: '#F1F5F9',
+    
+    // Text colors
+    textPrimary: '#1F2937',
+    textSecondary: '#6B7280',
+    
+    // Border colors
+    border: '#E5E7EB',
   },
   
   spacing: {

@@ -28,9 +28,13 @@ def login(request):
     """
     Endpoint para autenticação de usuário.
     """
+    logger.info(f"Tentativa de login - IP: {request.META.get('REMOTE_ADDR')}, User-Agent: {request.META.get('HTTP_USER_AGENT')}")
+    logger.info(f"Dados recebidos: {request.data}")
+    
     serializer = LoginSerializer(data=request.data)
     
     if not serializer.is_valid():
+        logger.warning(f"Dados inválidos no login: {serializer.errors}")
         return error_response(
             message='Dados inválidos',
             errors=serializer.errors,
@@ -40,10 +44,13 @@ def login(request):
     email = serializer.validated_data['email']
     password = serializer.validated_data['password']
     
+    logger.info(f"Tentativa de autenticação para email: {email}")
+    
     # Autenticar usuário
     user = authenticate(request, username=email, password=password)
     
     if not user:
+        logger.warning(f"Falha na autenticação para email: {email}")
         return error_response(
             message='Credenciais inválidas',
             status_code=status.HTTP_401_UNAUTHORIZED
@@ -245,6 +252,9 @@ def me(request):
     """
     Endpoint para obter informações do usuário logado.
     """
+    logger.info(f"Requisição /me - IP: {request.META.get('REMOTE_ADDR')}, User: {request.user.email if request.user.is_authenticated else 'Não autenticado'}")
+    logger.info(f"Headers de autorização: {request.META.get('HTTP_AUTHORIZATION')}")
+    
     user = request.user
     
     data = {

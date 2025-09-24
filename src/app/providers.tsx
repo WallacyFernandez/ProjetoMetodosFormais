@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { ThemeProvider } from "styled-components";
 import theme from "./styles/theme";
@@ -12,32 +12,37 @@ import { storage } from "@/utils/Storage";
 import { GetUserData } from "@/services/AuthServices";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
-  const [ isCollapsed, setIsCollapsed ] = useState<boolean>(false)
-  const [ user, setUser ] = useState<UserDataProps | null>(null)
-  const [ isLoaded, setIsLoaded ] = useState<boolean>(false)
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
+  const [user, setUser] = useState<UserDataProps | null>(null);
+  const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
   useEffect(() => {
-    const accessToken = storage.get('accessToken')
-    if(!accessToken) return
+    const accessToken = storage.get("accessToken");
+    if (!accessToken) {
+      setIsLoaded(true);
+      return;
+    }
     (async () => {
       try {
-        const data = await GetUserData()
-        if(data) {
+        const data = await GetUserData();
+        if (data) {
           setUser({
             id: data.id,
             username: data.username,
-            name: data.name ?? '',
-            email: data.email ?? '',
+            name: data.name ?? "",
+            email: data.email ?? "",
             // compat com tipo atual do contexto
-            groups: (data.groups as unknown as []) ?? []
-          })
+            groups: (data.groups as unknown as []) ?? [],
+          });
         }
       } catch (error) {
         // silencioso por enquanto; toasts já são mostrados em fluxos explícitos
+        console.error("Erro ao carregar dados do usuário:", error);
+      } finally {
+        setIsLoaded(true);
       }
-    })()
-  }, [])
-
+    })();
+  }, []);
 
   return (
     <ThemeProvider theme={theme}>
@@ -57,11 +62,11 @@ export default function Providers({ children }: { children: React.ReactNode }) {
               pauseOnHover={false}
               theme="light"
               transition={Bounce}
-              />
+            />
             {children}
           </IsDashboardLoadedContext.Provider>
         </UserDataContext.Provider>
       </IsSidebarOnContext.Provider>
     </ThemeProvider>
   );
-} 
+}
