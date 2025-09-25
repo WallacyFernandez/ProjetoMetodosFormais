@@ -284,14 +284,11 @@ export async function GetCategorySummary(
 
 // Serviço para Dashboard completo
 export async function GetDashboardData(): Promise<DashboardData> {
-  console.log("[FinanceServices] Iniciando requisição para dashboard_data");
   const response = await http.get<DashboardData>(
     "/api/v1/finance/transactions/dashboard_data/",
     {
       context: "Carregar dados do dashboard",
     },
   );
-  console.log("[FinanceServices] Resposta recebida:", response);
-  console.log("[FinanceServices] Dados extraídos:", response);
   return response;
 }

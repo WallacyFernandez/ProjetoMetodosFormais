@@ -15,6 +15,7 @@ from drf_spectacular.views import (
 api_patterns = [
     path('auth/', include('apps.authentication.urls')),
     path('finance/', include('apps.finance.urls')),
+    path('game/', include('apps.game.urls')),
     # path('users/', include('apps.users.urls')),
     # path('core/', include('apps.core.urls')),
 ]

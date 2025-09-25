@@ -44,14 +44,6 @@ async function request<T>(method: HttpMethod, path: string, options: RequestOpti
     finalHeaders["Authorization"] = `Bearer ${accessToken}`;
   }
 
-  // Debug logs
-  console.log(`[HTTP ${method}] ${path}`, {
-    headers: finalHeaders,
-    body: body,
-    hasToken: !!accessToken,
-    tokenPreview: accessToken ? `${accessToken.substring(0, 20)}...` : 'none'
-  });
-
   const response = await fetch(buildUrl(path, query), {
     method,
     headers: finalHeaders,
@@ -61,21 +53,11 @@ async function request<T>(method: HttpMethod, path: string, options: RequestOpti
   const isJson = response.headers.get("content-type")?.includes("application/json");
   const data = isJson ? await response.json().catch(() => null) : null;
 
-  // Debug logs para resposta
-  console.log(`[HTTP Response] ${method} ${path}`, {
-    status: response.status,
-    statusText: response.statusText,
-    ok: response.ok,
-    data: data,
-    contentType: response.headers.get("content-type")
-  });
-
   if (!response.ok) {
     const message = (data && ((data as any).message || (data as any).detail || (data as any).error)) || response.statusText || "Request failed";
     const error: HttpError = new Error(typeof message === "string" ? message : JSON.stringify(message));
     error.status = response.status;
     error.body = data;
-    console.error(`[HTTP Error] ${method} ${path}`, error);
     if (!suppressErrorToast) {
       showHttpErrorToast(error, context);
     }

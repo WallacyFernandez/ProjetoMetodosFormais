@@ -8,7 +8,9 @@ import {
   MdReceipt, 
   MdAccountBalance, 
   MdCategory, 
-  MdBarChart 
+  MdBarChart,
+  MdGamepad,
+  MdShoppingCart
 } from "react-icons/md";
 
 interface RouteListProps {
@@ -46,6 +48,8 @@ interface NavItem {
 
 const Items: NavItem[] = [
   { name: 'Dashboard', icon: <MdOutlineDashboardCustomize />, path: '/dashboard' },
+  { name: 'Jogo', icon: <MdGamepad />, path: '/jogo' },
+  { name: 'Vendas', icon: <MdShoppingCart />, path: '/vendas' },
   { name: 'Transações', icon: <MdReceipt />, path: '/transacoes' },
   { name: 'Saldo', icon: <MdAccountBalance />, path: '/saldo' },
   { name: 'Categorias', icon: <MdCategory />, path: '/categorias' },
