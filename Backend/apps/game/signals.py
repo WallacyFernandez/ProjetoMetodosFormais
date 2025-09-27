@@ -10,10 +10,18 @@ from .models import GameSession, ProductCategory, Supplier, Product
 User = get_user_model()
 
 @receiver(post_save, sender=User)
-def create_game_session(sender, instance, created, **kwargs):
-    """Cria uma sessão de jogo quando um novo usuário é criado."""
+def create_user_balance_and_game_session(sender, instance, created, **kwargs):
+    """Cria saldo e sessão de jogo quando um novo usuário é criado."""
     if created:
-        game_session = GameSession.objects.create(user=instance)
+        # Cria saldo inicial do usuário
+        from apps.finance.models import UserBalance
+        UserBalance.objects.create(
+            user=instance,
+            current_balance=10000.00
+        )
+        
+        # Cria sessão de jogo
+        GameSession.objects.create(user=instance)
         
         # Cria categorias padrão se não existirem
         if not ProductCategory.objects.exists():

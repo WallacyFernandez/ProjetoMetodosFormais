@@ -202,7 +202,6 @@ class ProductStockOperationSerializer(serializers.Serializer):
 class ProductPurchaseSerializer(serializers.Serializer):
     """Serializer para compra de produtos."""
     
-    product_id = serializers.CharField()
     quantity = serializers.IntegerField(min_value=1)
-    unit_price = serializers.DecimalField(max_digits=12, decimal_places=2, required=False)
+    unit_price = serializers.DecimalField(max_digits=12, decimal_places=2, required=False, min_value=0.01)
     description = serializers.CharField(max_length=255, required=False, allow_blank=True)
