@@ -560,7 +560,7 @@ export default function VendasPage() {
       <Header>
         <Title>
           <MdShoppingCart />
-          Sistema de Vendas
+          Sistema de Estoque
         </Title>
       </Header>
 

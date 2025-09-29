@@ -49,7 +49,7 @@ interface NavItem {
 const Items: NavItem[] = [
   { name: 'Dashboard', icon: <MdOutlineDashboardCustomize />, path: '/dashboard' },
   { name: 'Jogo', icon: <MdGamepad />, path: '/jogo' },
-  { name: 'Vendas', icon: <MdShoppingCart />, path: '/vendas' },
+  { name: 'Estoque', icon: <MdShoppingCart />, path: '/estoque' },
   { name: 'Transações', icon: <MdReceipt />, path: '/transacoes' },
   { name: 'Saldo', icon: <MdAccountBalance />, path: '/saldo' },
   { name: 'Categorias', icon: <MdCategory />, path: '/categorias' },
