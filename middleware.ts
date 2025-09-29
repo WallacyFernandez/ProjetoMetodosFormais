@@ -9,6 +9,10 @@ function isPublicPath(pathname: string): boolean {
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  if (pathname === "/current-url" || pathname === "/.identity") {
+    return new NextResponse(null, { status: 404 });
+  }
+  
   if (isPublicPath(pathname)) {
     return NextResponse.next();
   }

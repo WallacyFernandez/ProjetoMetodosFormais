@@ -109,7 +109,7 @@ export default function StatsCards({ monthlySummary }: StatsCardsProps) {
       {/* Saldo Mensal */}
       <Card>
         <Header>
-          <Title>Saldo Mensal</Title>
+          <Title>Lucro Bruto Mensal</Title>
           <IconContainer $color={balanceColor}>
             {monthlySummary.balance >= 0 ? (
               <MdTrendingUp size={20} />

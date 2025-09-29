@@ -34,4 +34,3 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS('Correção das datas das vendas concluída!')
         )
-
