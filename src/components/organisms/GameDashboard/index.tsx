@@ -265,7 +265,7 @@ const ErrorContainer = styled.div`
 `;
 
 const RestockButton = styled(motion.button)<{ $disabled?: boolean }>`
-  background: ${({ $disabled }) => 
+  background: ${({ $disabled }) =>
     $disabled ? theme.colors.mediumGrey : theme.colors.primaryGreen};
   color: white;
   border: none;
@@ -273,7 +273,7 @@ const RestockButton = styled(motion.button)<{ $disabled?: boolean }>`
   padding: 0.5rem 1rem;
   font-size: ${theme.fontSizes.sm};
   font-weight: 600;
-  cursor: ${({ $disabled }) => $disabled ? 'not-allowed' : 'pointer'};
+  cursor: ${({ $disabled }) => ($disabled ? "not-allowed" : "pointer")};
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -281,7 +281,7 @@ const RestockButton = styled(motion.button)<{ $disabled?: boolean }>`
   margin-top: ${theme.spacing.sm};
 
   &:hover {
-    background: ${({ $disabled }) => 
+    background: ${({ $disabled }) =>
       $disabled ? theme.colors.mediumGrey : theme.colors.secondaryGreen};
   }
 
@@ -347,7 +347,10 @@ export default function GameDashboard() {
       const costData = await getRestockCost();
       setRestockCost(costData.total_cost);
     } catch (err) {
-      console.error("Erro ao carregar custo de reposição silenciosamente:", err);
+      console.error(
+        "Erro ao carregar custo de reposição silenciosamente:",
+        err,
+      );
     }
   };
 
@@ -357,10 +360,13 @@ export default function GameDashboard() {
       return;
     }
 
-    const confirmMessage = `Deseja repor todo o estoque por R$ ${restockCost.toLocaleString('pt-BR', {
-      minimumFractionDigits: 2,
-    })}?`;
-    
+    const confirmMessage = `Deseja repor todo o estoque por R$ ${restockCost.toLocaleString(
+      "pt-BR",
+      {
+        minimumFractionDigits: 2,
+      },
+    )}?`;
+
     if (!window.confirm(confirmMessage)) {
       return;
     }
@@ -368,7 +374,7 @@ export default function GameDashboard() {
     try {
       setIsRestocking(true);
       const result = await restockAllProducts();
-      
+
       // Atualizar apenas os dados necessários ao invés de recarregar tudo
       setDashboardData((prev) => {
         if (!prev) return prev;
@@ -377,28 +383,34 @@ export default function GameDashboard() {
           balance: {
             ...prev.balance,
             current_balance: result.new_balance,
-            balance_formatted: `R$ ${result.new_balance.toLocaleString('pt-BR', {
-              minimumFractionDigits: 2,
-            })}`
-          }
+            balance_formatted: `R$ ${result.new_balance.toLocaleString(
+              "pt-BR",
+              {
+                minimumFractionDigits: 2,
+              },
+            )}`,
+          },
         };
       });
-      
+
       // Atualizar custo de reposição (deve ser 0 agora)
       await loadRestockCost();
-      
+
       toast.success(result.message);
     } catch (err: any) {
       console.error("Erro ao repor estoque:", err);
-      
-      if (err.response?.data?.error === 'Saldo insuficiente') {
+
+      if (err.response?.data?.error === "Saldo insuficiente") {
         const data = err.response.data;
         toast.error(
-          `Saldo insuficiente! Necessário: R$ ${data.required_amount.toLocaleString('pt-BR', {
+          `Saldo insuficiente! Necessário: R$ ${data.required_amount.toLocaleString(
+            "pt-BR",
+            {
+              minimumFractionDigits: 2,
+            },
+          )} | Disponível: R$ ${data.current_balance.toLocaleString("pt-BR", {
             minimumFractionDigits: 2,
-          })} | Disponível: R$ ${data.current_balance.toLocaleString('pt-BR', {
-            minimumFractionDigits: 2,
-          })}`
+          })}`,
         );
       } else {
         toast.error("Erro ao repor estoque");
@@ -827,7 +839,8 @@ export default function GameDashboard() {
                         <SaleDetails>
                           {sale.quantity}x - R${" "}
                           {parseFloat(sale.total_value.toString()).toFixed(2)} -{" "}
-                          {sale.game_date_formatted} às {sale.game_time_formatted}
+                          {sale.game_date_formatted} às{" "}
+                          {sale.game_time_formatted}
                         </SaleDetails>
                       </SaleInfo>
                     </SaleItem>
@@ -846,7 +859,12 @@ export default function GameDashboard() {
                   ) : (
                     <div>
                       <div>🏪 Mercado fechado</div>
-                      <div style={{ fontSize: theme.fontSizes.xs, marginTop: theme.spacing.sm }}>
+                      <div
+                        style={{
+                          fontSize: theme.fontSizes.xs,
+                          marginTop: theme.spacing.sm,
+                        }}
+                      >
                         Horário comercial: 6h às 22h
                       </div>
                     </div>
@@ -883,11 +901,21 @@ export default function GameDashboard() {
                 >
                   🕐 {game_session.current_game_time}
                   {game_session.is_market_open ? (
-                    <span style={{ color: theme.colors.primaryGreen, marginLeft: "0.5rem" }}>
+                    <span
+                      style={{
+                        color: theme.colors.primaryGreen,
+                        marginLeft: "0.5rem",
+                      }}
+                    >
                       ✅ Aberto
                     </span>
                   ) : (
-                    <span style={{ color: theme.colors.error, marginLeft: "0.5rem" }}>
+                    <span
+                      style={{
+                        color: theme.colors.error,
+                        marginLeft: "0.5rem",
+                      }}
+                    >
                       ❌ Fechado
                     </span>
                   )}
@@ -1011,13 +1039,23 @@ export default function GameDashboard() {
                   )}
                 </div>
               </div>
-              
+
               {/* Botão de Reposição */}
               <RestockButton
                 type="button"
-                $disabled={!restockCost || restockCost === 0 || isRestocking || isLoadingRestockCost}
+                $disabled={
+                  !restockCost ||
+                  restockCost === 0 ||
+                  isRestocking ||
+                  isLoadingRestockCost
+                }
                 onClick={handleRestockAll}
-                disabled={!restockCost || restockCost === 0 || isRestocking || isLoadingRestockCost}
+                disabled={
+                  !restockCost ||
+                  restockCost === 0 ||
+                  isRestocking ||
+                  isLoadingRestockCost
+                }
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
@@ -1025,7 +1063,11 @@ export default function GameDashboard() {
                   <>
                     <motion.div
                       animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      transition={{
+                        duration: 1,
+                        repeat: Infinity,
+                        ease: "linear",
+                      }}
                     >
                       <MdRefresh size={16} />
                     </motion.div>
@@ -1042,17 +1084,32 @@ export default function GameDashboard() {
               {/* Informações de Custo */}
               {restockCost !== null && (
                 <RestockInfo>
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.25rem", marginBottom: "0.25rem" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.25rem",
+                      marginBottom: "0.25rem",
+                    }}
+                  >
                     <MdInfo size={14} />
                     <strong>Custo para repor:</strong>
                   </div>
-                  <div style={{ fontWeight: 600, color: theme.colors.textPrimary }}>
-                    R$ {restockCost.toLocaleString('pt-BR', {
+                  <div
+                    style={{ fontWeight: 600, color: theme.colors.textPrimary }}
+                  >
+                    R${" "}
+                    {restockCost.toLocaleString("pt-BR", {
                       minimumFractionDigits: 2,
                     })}
                   </div>
                   {restockCost === 0 && (
-                    <div style={{ color: theme.colors.primaryGreen, fontSize: theme.fontSizes.xs }}>
+                    <div
+                      style={{
+                        color: theme.colors.primaryGreen,
+                        fontSize: theme.fontSizes.xs,
+                      }}
+                    >
                       ✅ Estoque já está no máximo!
                     </div>
                   )}

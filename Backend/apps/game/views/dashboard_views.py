@@ -7,10 +7,13 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db import models
+from django.db.models import Sum, Q
+from datetime import datetime, timedelta
+from calendar import monthrange
 
 from ..models import GameSession, Product, RealtimeSale
 from ..serializers import GameSessionSerializer, RealtimeSaleSerializer
-from apps.finance.models import UserBalance
+from apps.finance.models import UserBalance, Transaction
 
 
 class GameDashboardViewSet(viewsets.ViewSet):
@@ -99,4 +102,73 @@ class GameDashboardViewSet(viewsets.ViewSet):
             return Response(
                 {'error': 'Saldo do usuário não encontrado'}, 
                 status=status.HTTP_404_NOT_FOUND
+            )
+
+    @action(detail=False, methods=['get'])
+    def monthly_profits(self, request):
+        """Retorna histórico de lucros mensais brutos."""
+        try:
+            # Busca transações de receitas (vendas) e despesas (compras)
+            transactions = Transaction.objects.filter(user=request.user)
+            
+            # Calcula lucros mensais
+            monthly_data = []
+            total_profit = 0
+            
+            # Busca todos os meses que têm transações
+            months_with_transactions = transactions.values_list('created_at__year', 'created_at__month').distinct().order_by('-created_at__year', '-created_at__month')
+            
+            for year, month in months_with_transactions:
+                # Calcula receitas do mês (vendas)
+                monthly_revenue = transactions.filter(
+                    transaction_type='INCOME',
+                    created_at__year=year,
+                    created_at__month=month
+                ).aggregate(total=Sum('amount'))['total'] or 0
+                
+                # Calcula despesas do mês (compras)
+                monthly_expenses = transactions.filter(
+                    transaction_type='EXPENSE',
+                    created_at__year=year,
+                    created_at__month=month
+                ).aggregate(total=Sum('amount'))['total'] or 0
+                
+                # Calcula lucro bruto (receitas - despesas)
+                monthly_profit = float(monthly_revenue) - float(monthly_expenses)
+                total_profit += monthly_profit
+                
+                # Formata o nome do mês
+                month_name = datetime(year, month, 1).strftime('%B %Y')
+                month_name_pt = {
+                    'January': 'Janeiro', 'February': 'Fevereiro', 'March': 'Março',
+                    'April': 'Abril', 'May': 'Maio', 'June': 'Junho',
+                    'July': 'Julho', 'August': 'Agosto', 'September': 'Setembro',
+                    'October': 'Outubro', 'November': 'Novembro', 'December': 'Dezembro'
+                }
+                
+                monthly_data.append({
+                    'month': f"{month_name_pt.get(datetime(year, month, 1).strftime('%B'))} {year}",
+                    'month_key': f"{year}-{month:02d}",
+                    'revenue': float(monthly_revenue),
+                    'expenses': float(monthly_expenses),
+                    'profit': monthly_profit,
+                    'profit_formatted': f"R$ {monthly_profit:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.'),
+                    'revenue_formatted': f"R$ {monthly_revenue:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.'),
+                    'expenses_formatted': f"R$ {monthly_expenses:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.')
+                })
+            
+            # Ordena por mês (mais recente primeiro)
+            monthly_data.sort(key=lambda x: x['month_key'], reverse=True)
+            
+            return Response({
+                'monthly_profits': monthly_data,
+                'total_profit': total_profit,
+                'total_profit_formatted': f"R$ {total_profit:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.'),
+                'months_count': len(monthly_data)
+            })
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Erro ao calcular lucros mensais: {str(e)}'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )

@@ -1,16 +1,18 @@
-'use client'
+"use client";
 
-import React, { useContext, useEffect, useState } from 'react'
-import { styled } from 'styled-components'
-import { IsSidebarOnContext } from '@/context/IsSidebarOnContext'
-import { GetDashboardData } from '@/services/FinanceServices'
-import type { DashboardData } from '@/types/finance'
-import BalanceCard from '@/components/molecules/BalanceCard'
-import StatsCards from '@/components/molecules/StatsCards'
-import RecentTransactions from '@/components/molecules/RecentTransactions'
-import CategoryChart from '@/components/molecules/CategoryChart'
-import PageHeader from '@/components/molecules/PageHeader'
-import { toast } from 'react-toastify'
+import React, { useContext, useEffect, useState } from "react";
+import { styled } from "styled-components";
+import { IsSidebarOnContext } from "@/context/IsSidebarOnContext";
+import { GetDashboardData } from "@/services/FinanceServices";
+import { getMonthlyProfits, MonthlyProfit } from "@/services/GameServices";
+import type { DashboardData } from "@/types/finance";
+import BalanceCard from "@/components/molecules/BalanceCard";
+import StatsCards from "@/components/molecules/StatsCards";
+import RecentTransactions from "@/components/molecules/RecentTransactions";
+import CategoryChart from "@/components/molecules/CategoryChart";
+import PageHeader from "@/components/molecules/PageHeader";
+import MonthlyProfitHistory from "@/components/molecules/MonthlyProfitHistory";
+import { toast } from "react-toastify";
 
 interface FinanceDashboardProps {
   $isCollapsed: boolean;
@@ -18,21 +20,21 @@ interface FinanceDashboardProps {
 
 const Container = styled.div<FinanceDashboardProps>`
   background-color: ${({ theme }) => theme.colors.backgroundSecondary};
-  margin-left: ${({ $isCollapsed }) => $isCollapsed ? '10rem' : '20rem'};
-  transition: all .3s ease-in-out;
+  margin-left: ${({ $isCollapsed }) => ($isCollapsed ? "10rem" : "20rem")};
+  transition: all 0.3s ease-in-out;
   padding: 2rem;
 
   @media (max-width: 1000px) {
-    margin-left: ${({ $isCollapsed }) => $isCollapsed ? '7rem' : '18rem'};
+    margin-left: ${({ $isCollapsed }) => ($isCollapsed ? "7rem" : "18rem")};
   }
 
   @media (max-width: 834px) {
-    margin-left: ${({ $isCollapsed }) => $isCollapsed ? '3rem' : '17rem'};
+    margin-left: ${({ $isCollapsed }) => ($isCollapsed ? "3rem" : "17rem")};
   }
 
   @media (max-width: 768px) {
-    margin-left: .3rem;
-    margin-right: .3rem;
+    margin-left: 0.3rem;
+    margin-right: 0.3rem;
   }
 `;
 
@@ -88,56 +90,74 @@ const ErrorContainer = styled.div`
 `;
 
 export default function FinanceDashboard() {
-  const { isCollapsed } = useContext(IsSidebarOnContext)
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { isCollapsed } = useContext(IsSidebarOnContext);
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(
+    null,
+  );
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [monthlyProfits, setMonthlyProfits] = useState<MonthlyProfit[]>([]);
+  const [totalProfit, setTotalProfit] = useState(0);
+  const [totalProfitFormatted, setTotalProfitFormatted] = useState("R$ 0,00");
+  const [isLoadingProfits, setIsLoadingProfits] = useState(false);
 
   const loadDashboardData = async () => {
     try {
-      setLoading(true)
-      setError(null)
-      const data = await GetDashboardData()
-      setDashboardData(data)
+      setLoading(true);
+      setError(null);
+      const data = await GetDashboardData();
+      setDashboardData(data);
     } catch (err) {
-      console.error('Erro ao carregar dados do dashboard:', err)
-      setError('Erro ao carregar dados do dashboard')
-      toast.error('Erro ao carregar dados do dashboard')
+      console.error("Erro ao carregar dados do dashboard:", err);
+      setError("Erro ao carregar dados do dashboard");
+      toast.error("Erro ao carregar dados do dashboard");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
+
+  const loadMonthlyProfits = async () => {
+    try {
+      setIsLoadingProfits(true);
+      const data = await getMonthlyProfits();
+      setMonthlyProfits(data.monthly_profits);
+      setTotalProfit(data.total_profit);
+      setTotalProfitFormatted(data.total_profit_formatted);
+    } catch (err) {
+      console.error("Erro ao carregar lucros mensais:", err);
+      toast.error("Erro ao carregar histórico de lucros");
+    } finally {
+      setIsLoadingProfits(false);
+    }
+  };
 
   useEffect(() => {
-    loadDashboardData()
-  }, [])
+    loadDashboardData();
+    loadMonthlyProfits();
+  }, []);
 
   if (loading) {
     return (
       <Container $isCollapsed={isCollapsed}>
         <PageHeader $title="Dashboard Financeiro" $buttons={[]} />
-        <LoadingContainer>
-          Carregando dados do dashboard...
-        </LoadingContainer>
+        <LoadingContainer>Carregando dados do dashboard...</LoadingContainer>
       </Container>
-    )
+    );
   }
 
   if (error || !dashboardData) {
     return (
       <Container $isCollapsed={isCollapsed}>
         <PageHeader $title="Dashboard Financeiro" $buttons={[]} />
-        <ErrorContainer>
-          {error || 'Erro ao carregar dados'}
-        </ErrorContainer>
+        <ErrorContainer>{error || "Erro ao carregar dados"}</ErrorContainer>
       </Container>
-    )
+    );
   }
 
   return (
     <Container $isCollapsed={isCollapsed}>
       <PageHeader $title="Dashboard Financeiro" $buttons={[]} />
-      
+
       <CardsRow>
         <BalanceCard balance={dashboardData.current_balance} />
         <StatsCards monthlySummary={dashboardData.monthly_summary} />
@@ -145,13 +165,20 @@ export default function FinanceDashboard() {
 
       <DashboardGrid>
         <LeftColumn>
-          <RecentTransactions transactions={dashboardData.recent_transactions} />
+          <RecentTransactions
+            transactions={dashboardData.recent_transactions}
+          />
+          <MonthlyProfitHistory
+            monthlyProfits={monthlyProfits}
+            totalProfit={totalProfit}
+            totalProfitFormatted={totalProfitFormatted}
+          />
         </LeftColumn>
-        
+
         <RightColumn>
           <CategoryChart categorySummary={dashboardData.category_summary} />
         </RightColumn>
       </DashboardGrid>
     </Container>
-  )
+  );
 }
