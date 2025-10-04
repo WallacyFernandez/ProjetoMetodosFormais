@@ -131,3 +131,4 @@ class ProductSalesViewSet(viewsets.ViewSet):
             'recent_sales': ProductStockHistorySerializer(recent_sales, many=True).data,
             'top_products': list(top_products)
         })
+

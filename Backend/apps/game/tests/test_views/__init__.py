@@ -7,3 +7,4 @@ from .test_product_views import *
 from .test_sales_views import *
 from .test_dashboard_views import *
 from .test_stock_views import *
+

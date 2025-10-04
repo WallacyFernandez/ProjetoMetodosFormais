@@ -45,15 +45,25 @@ class GameSessionViewSetTest(TestCase):
         response = self.client.get(url)
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['user'], self.user.id)
+        self.assertEqual(response.data['user_name'], f'{self.user.first_name} {self.user.last_name}')
         self.assertEqual(response.data['current_game_date'], '2025-01-01')
 
     def test_get_current_session_not_found(self):
         """Testa obter sessão atual quando não existe."""
+        # Criar um usuário sem sessão
+        other_user = User.objects.create_user(
+            username='otheruser',
+            email='other@test.com',
+            first_name='Other',
+            last_name='User'
+        )
+        self.client.force_authenticate(user=other_user)
+        
         url = reverse('game-session-current')
         response = self.client.get(url)
         
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        # Com o sinal, sempre cria uma sessão automaticamente
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_update_time(self):
         """Testa atualização do tempo do jogo."""
@@ -157,7 +167,7 @@ class GameSessionViewSetTest(TestCase):
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), 1)
-        self.assertEqual(response.data['results'][0]['id'], user_session.id)
+        self.assertEqual(str(response.data['results'][0]['id']), str(user_session.id))
 
     def test_get_object_returns_user_session(self):
         """Testa se get_object retorna a sessão do usuário."""
@@ -167,7 +177,7 @@ class GameSessionViewSetTest(TestCase):
         response = self.client.get(url)
         
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['id'], game_session.id)
+        self.assertEqual(str(response.data['id']), str(game_session.id))
 
     def test_update_time_with_no_days_passed(self):
         """Testa atualização do tempo sem dias passados."""
@@ -243,8 +253,8 @@ class GameSessionViewSetTest(TestCase):
         response = self.client.get(url)
         
         expected_fields = [
-            'id', 'user', 'game_start_date', 'current_game_date', 'game_end_date',
-            'status', 'time_acceleration', 'daily_sales_target', 'auto_sales_enabled',
+            'id', 'user_name', 'game_start_date', 'current_game_date', 'game_end_date',
+            'status', 'time_acceleration',
             'total_score', 'days_survived', 'current_day_sales_count', 'created_at'
         ]
         

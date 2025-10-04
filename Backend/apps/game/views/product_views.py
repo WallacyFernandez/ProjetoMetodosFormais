@@ -296,3 +296,4 @@ class ProductViewSet(viewsets.ModelViewSet):
                 {'error': f'Erro ao calcular custo: {str(e)}'}, 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+

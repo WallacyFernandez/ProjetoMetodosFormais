@@ -207,3 +207,4 @@ class Product(BaseModel):
             raise ValueError("Quantidade não pode ser negativa")
         self.current_stock = quantity
         self.save()
+

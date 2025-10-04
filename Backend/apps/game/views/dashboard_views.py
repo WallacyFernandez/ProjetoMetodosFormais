@@ -172,3 +172,4 @@ class GameDashboardViewSet(viewsets.ViewSet):
                 {'error': f'Erro ao calcular lucros mensais: {str(e)}'}, 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+

@@ -102,3 +102,4 @@ class RealtimeSale(BaseModel):
         Horário comercial: 6h às 22h.
         """
         return 6 <= game_time.hour < 22
+

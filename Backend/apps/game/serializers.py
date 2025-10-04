@@ -94,7 +94,12 @@ class RealtimeSaleSerializer(serializers.ModelSerializer):
     
     def get_game_time_formatted(self, obj):
         """Formata a hora do jogo."""
-        return obj.game_time.strftime('%H:%M:%S')
+        if obj.game_time:
+            # Se for string, retorna como está, se for time object, formata
+            if isinstance(obj.game_time, str):
+                return obj.game_time
+            return obj.game_time.strftime('%H:%M:%S')
+        return None
 
 
 class GameDashboardSerializer(serializers.Serializer):

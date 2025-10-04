@@ -3,16 +3,12 @@ Configurações globais para testes com pytest.
 """
 
 import pytest
-from django.contrib.auth import get_user_model
-from rest_framework.test import APIClient
-from rest_framework_simplejwt.tokens import RefreshToken
-
-User = get_user_model()
 
 
 @pytest.fixture
 def api_client():
     """Fixture que retorna um cliente da API."""
+    from rest_framework.test import APIClient
     return APIClient()
 
 
@@ -32,12 +28,16 @@ def user_data():
 @pytest.fixture
 def user(db, user_data):
     """Fixture que cria um usuário para testes."""
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
     return User.objects.create_user(**user_data)
 
 
 @pytest.fixture
 def superuser(db):
     """Fixture que cria um superusuário para testes."""
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
     return User.objects.create_superuser(
         email='admin@example.com',
         username='admin',
@@ -50,6 +50,7 @@ def superuser(db):
 @pytest.fixture
 def authenticated_client(api_client, user):
     """Fixture que retorna um cliente autenticado."""
+    from rest_framework_simplejwt.tokens import RefreshToken
     refresh = RefreshToken.for_user(user)
     api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
     return api_client
@@ -58,6 +59,7 @@ def authenticated_client(api_client, user):
 @pytest.fixture
 def admin_client(api_client, superuser):
     """Fixture que retorna um cliente autenticado como admin."""
+    from rest_framework_simplejwt.tokens import RefreshToken
     refresh = RefreshToken.for_user(superuser)
     api_client.credentials(HTTP_AUTHORIZATION=f'Bearer {refresh.access_token}')
     return api_client

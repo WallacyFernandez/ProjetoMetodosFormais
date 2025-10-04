@@ -77,3 +77,4 @@ class GameSessionViewSet(viewsets.ModelViewSet):
         game_session.reset_game()
         serializer = self.get_serializer(game_session)
         return Response(serializer.data)
+
