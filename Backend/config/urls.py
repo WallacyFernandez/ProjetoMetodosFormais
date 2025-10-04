@@ -16,6 +16,7 @@ api_patterns = [
     path('auth/', include('apps.authentication.urls')),
     path('finance/', include('apps.finance.urls')),
     path('game/', include('apps.game.urls')),
+    path('employees/', include('apps.employees.urls')),
     # path('users/', include('apps.users.urls')),
     # path('core/', include('apps.core.urls')),
 ]
