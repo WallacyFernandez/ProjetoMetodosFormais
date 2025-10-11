@@ -12,6 +12,7 @@ import RecentTransactions from "@/components/molecules/RecentTransactions";
 import CategoryChart from "@/components/molecules/CategoryChart";
 import PageHeader from "@/components/molecules/PageHeader";
 import MonthlyProfitHistory from "@/components/molecules/MonthlyProfitHistory";
+import EmployeeQuickCard from "@/components/molecules/EmployeeQuickCard";
 import { toast } from "react-toastify";
 
 interface FinanceDashboardProps {
@@ -20,7 +21,7 @@ interface FinanceDashboardProps {
 
 const Container = styled.div<FinanceDashboardProps>`
   background-color: ${({ theme }) => theme.colors.backgroundSecondary};
-  margin-left: ${({ $isCollapsed }) => ($isCollapsed ? "10rem" : "20rem")};
+  margin-left: ${({ $isCollapsed }) => ($isCollapsed ? "0" : "16rem")};
   transition: all 0.3s ease-in-out;
   padding: 2rem;
 
@@ -161,6 +162,7 @@ export default function FinanceDashboard() {
       <CardsRow>
         <BalanceCard balance={dashboardData.current_balance} />
         <StatsCards monthlySummary={dashboardData.monthly_summary} />
+        <EmployeeQuickCard />
       </CardsRow>
 
       <DashboardGrid>
