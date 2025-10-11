@@ -132,3 +132,4 @@ class ProductSalesViewSet(viewsets.ViewSet):
             'top_products': list(top_products)
         })
 
+

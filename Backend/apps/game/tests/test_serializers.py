@@ -46,21 +46,23 @@ class GameSessionSerializerTest(TestCase):
         # auto_sales_enabled não está no serializer
 
     def test_deserialize_game_session(self):
-        """Testa deserialização de sessão de jogo."""
+        """Testa deserialização/atualização de uma sessão de jogo existente."""
+        # Criar uma sessão existente
+        game_session, _ = GameSession.objects.get_or_create(user=self.user)
+        
+        # Atualizar sessão existente com campos disponíveis no serializer
         data = {
             'status': 'ACTIVE',
             'time_acceleration': 30
         }
         
-        serializer = GameSessionSerializer(data=data)
+        serializer = GameSessionSerializer(game_session, data=data, partial=True)
         self.assertTrue(serializer.is_valid())
+        updated_session = serializer.save()
         
-        # Não pode salvar sem user, pular teste
-        self.skipTest("Serializer não permite criar sem user")
-        self.assertEqual(game_session.user, self.user)
-        self.assertEqual(game_session.status, 'ACTIVE')
-        self.assertEqual(game_session.time_acceleration, 30)
-        self.assertEqual(game_session.daily_sales_target, 50)
+        self.assertEqual(updated_session.user, self.user)
+        self.assertEqual(updated_session.status, 'ACTIVE')
+        self.assertEqual(updated_session.time_acceleration, 30)
 
     def test_game_session_validation(self):
         """Testa validação de dados da sessão de jogo."""

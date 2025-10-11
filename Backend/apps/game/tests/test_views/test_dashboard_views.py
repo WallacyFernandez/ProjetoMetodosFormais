@@ -5,10 +5,11 @@ Testes para as views de dashboard.
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework.test import APIClient
 from rest_framework import status
 from decimal import Decimal
-from datetime import date, time, datetime
+from datetime import date, time
 
 from apps.game.models import GameSession, ProductCategory, Supplier, Product, RealtimeSale
 from apps.finance.models import UserBalance
@@ -92,7 +93,7 @@ class GameDashboardViewSetTest(TestCase):
             total_value=Decimal('30.00'),
             game_date=self.game_session.current_game_date,
             game_time='14:30:00',
-            sale_time=datetime.now()
+            sale_time=timezone.now()
         )
         
         self.realtime_sale2 = RealtimeSale.objects.create(
@@ -103,7 +104,7 @@ class GameDashboardViewSetTest(TestCase):
             total_value=Decimal('15.00'),
             game_date=self.game_session.current_game_date,
             game_time='15:00:00',
-            sale_time=datetime.now()
+            sale_time=timezone.now()
         )
 
     def test_dashboard_data_success(self):
@@ -228,7 +229,7 @@ class GameDashboardViewSetTest(TestCase):
                 total_value=Decimal('15.00'),
                 game_date=self.game_session.current_game_date,
                 game_time=f'16:{i:02d}:00',
-                sale_time=datetime.now()
+                sale_time=timezone.now()
             )
         
         url = reverse('game-dashboard-data')
@@ -252,7 +253,7 @@ class GameDashboardViewSetTest(TestCase):
             total_value=Decimal('75.00'),
             game_date=other_date,
             game_time='10:00:00',
-            sale_time=datetime.now()
+            sale_time=timezone.now()
         )
         
         url = reverse('game-dashboard-data')
@@ -360,7 +361,7 @@ class GameDashboardViewSetTest(TestCase):
             total_value=Decimal('45.00'),
             game_date=self.game_session.current_game_date,
             game_time='16:00:00',
-            sale_time=datetime.now()
+            sale_time=timezone.now()
         )
         
         url = reverse('game-dashboard-data')

@@ -103,3 +103,4 @@ class RealtimeSale(BaseModel):
         """
         return 6 <= game_time.hour < 22
 
+

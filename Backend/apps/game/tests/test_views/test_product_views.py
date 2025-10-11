@@ -173,6 +173,13 @@ class ProductViewSetTest(TransactionTestCase):
             defaults={'current_balance': Decimal('10000.00')}
         )
         
+        # Criar categorias financeiras para transações
+        from apps.finance.models import Category
+        Category.objects.get_or_create(
+            name='Compras',
+            defaults={'category_type': 'EXPENSE'}
+        )
+        
         # Criar dados de teste
         self.category = ProductCategory.objects.create(
             name='Alimentos',
@@ -334,11 +341,21 @@ class ProductViewSetTest(TransactionTestCase):
 
     def test_restock_all_success(self):
         """Testa reposição de todo o estoque com sucesso."""
-        # Criar produtos com estoque baixo
-        self.product.current_stock = 20
-        self.product.save()
+        # Limpar produtos existentes para teste isolado
+        Product.objects.all().delete()
         
-        Product.objects.create(
+        # Criar produtos com estoque baixo
+        product1 = Product.objects.create(
+            name='Produto 1',
+            category=self.category,
+            supplier=self.supplier,
+            purchase_price=Decimal('15.00'),
+            sale_price=Decimal('20.00'),
+            current_stock=20,
+            max_stock=100
+        )
+        
+        product2 = Product.objects.create(
             name='Produto 2',
             category=self.category,
             supplier=self.supplier,
@@ -348,18 +365,43 @@ class ProductViewSetTest(TransactionTestCase):
             max_stock=50
         )
         
-        # Endpoint não implementado, pular teste
-        self.skipTest("Endpoint restock-all não implementado")
+        # Calcular custo total esperado
+        expected_cost = (product1.max_stock - product1.current_stock) * product1.purchase_price
+        expected_cost += (product2.max_stock - product2.current_stock) * product2.purchase_price
+        
+        initial_balance = UserBalance.objects.get(user=self.user).current_balance
+        
+        url = reverse('product-restock-all')
+        response = self.client.post(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('total_cost', response.data)
+        self.assertIn('restocked_products', response.data)
+        self.assertEqual(len(response.data['restocked_products']), 2)
+        
+        # Verificar se o saldo foi atualizado
+        user_balance = UserBalance.objects.get(user=self.user)
+        self.assertEqual(user_balance.current_balance, initial_balance - expected_cost)
 
     def test_restock_all_insufficient_balance(self):
         """Testa reposição de estoque com saldo insuficiente."""
+        # Criar produto com estoque baixo e preço alto
+        self.product.current_stock = 0
+        self.product.max_stock = 100
+        self.product.purchase_price = Decimal('1000.00')
+        self.product.save()
+        
         # Alterar saldo para valor baixo
         user_balance = UserBalance.objects.get(user=self.user)
         user_balance.current_balance = Decimal('10.00')
         user_balance.save()
         
-        # Endpoint não implementado, pular teste
-        self.skipTest("Endpoint restock-all não implementado")
+        url = reverse('product-restock-all')
+        response = self.client.post(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('error', response.data)
+        self.assertEqual(response.data['error'], 'Saldo insuficiente')
 
     def test_restock_cost(self):
         """Testa cálculo do custo de reposição."""
@@ -386,12 +428,27 @@ class ProductViewSetTest(TransactionTestCase):
 
     def test_restock_cost_no_products_needing_restock(self):
         """Testa cálculo do custo quando não há produtos precisando de reposição."""
-        # Todos os produtos já estão com estoque máximo
-        self.product.current_stock = self.product.max_stock
-        self.product.save()
+        # Limpar todos os produtos
+        Product.objects.all().delete()
         
-        # Endpoint não implementado, pular teste
-        self.skipTest("Endpoint restock-cost não implementado")
+        # Criar um único produto com estoque máximo
+        product = Product.objects.create(
+            name='Produto Completo',
+            category=self.category,
+            supplier=self.supplier,
+            purchase_price=Decimal('10.00'),
+            sale_price=Decimal('15.00'),
+            current_stock=100,
+            max_stock=100  # Estoque está no máximo
+        )
+        
+        url = reverse('product-restock-cost')
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('total_cost', response.data)
+        self.assertEqual(response.data['total_cost'], 0)
+        self.assertEqual(len(response.data['products_needing_restock']), 0)
 
     def test_product_serializer_includes_related_data(self):
         """Testa se o serializer inclui dados relacionados."""

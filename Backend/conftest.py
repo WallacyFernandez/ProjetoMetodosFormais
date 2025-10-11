@@ -2,6 +2,16 @@
 Configurações globais para testes com pytest.
 """
 
+import os
+import sys
+import django
+from django.conf import settings
+
+# Configurar o Django antes de qualquer import
+if not settings.configured:
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+    django.setup()
+
 import pytest
 
 

@@ -19,3 +19,4 @@ class ProductStockHistoryViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         return ProductStockHistory.objects.select_related('product').order_by('-created_at')
 
+

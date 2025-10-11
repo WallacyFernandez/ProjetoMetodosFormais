@@ -208,3 +208,4 @@ class Product(BaseModel):
         self.current_stock = quantity
         self.save()
 
+
