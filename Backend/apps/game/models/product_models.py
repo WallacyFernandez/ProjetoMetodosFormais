@@ -185,10 +185,23 @@ class Product(BaseModel):
         else:
             return 'NORMAL'
 
+    @property
+    def stock_percentage(self):
+        """Calcula a porcentagem do estoque em relação ao máximo."""
+        if self.max_stock <= 0:
+            return 0
+        return (self.current_stock / self.max_stock) * 100
+
     def add_stock(self, quantity):
         """Adiciona quantidade ao estoque."""
         if quantity < 0:
             raise ValueError("Quantidade deve ser positiva")
+        
+        # Verificar se a compra não excederá o estoque máximo
+        new_stock = self.current_stock + quantity
+        if new_stock > self.max_stock:
+            raise ValueError(f"Compra excede o limite máximo de estoque. Máximo permitido: {self.max_stock}, tentativa: {new_stock}")
+        
         self.current_stock += quantity
         self.save()
 

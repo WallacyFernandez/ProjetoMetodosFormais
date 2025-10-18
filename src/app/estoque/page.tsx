@@ -18,8 +18,8 @@ import {
   MdCancel,
 } from "react-icons/md";
 import { toast } from "react-toastify";
-import SideBar from '@/components/organisms/Sidebar';
-import { IsSidebarOnContext } from '@/context/IsSidebarOnContext';
+import SideBar from "@/components/organisms/Sidebar";
+import { IsSidebarOnContext } from "@/context/IsSidebarOnContext";
 
 import {
   getProducts,
@@ -33,6 +33,7 @@ import {
   formatCurrency,
   formatNumber,
 } from "@/services/GameServices";
+import SalesReportsContainer from "@/components/organisms/SalesReportsContainer";
 import {
   Product,
   Supplier,
@@ -43,24 +44,24 @@ import {
 
 const Container = styled.div<{ $isCollapsed: boolean }>`
   min-height: 100vh;
-  background-color: #F5F5F5;
+  background-color: #f5f5f5;
   padding-bottom: 5rem;
   margin: auto;
 `;
 
 const MainContent = styled.div<{ $isCollapsed: boolean }>`
   background-color: ${({ theme }) => theme.colors.backgroundSecondary};
-  margin-left: ${({ $isCollapsed }) => $isCollapsed ? '16rem' : '0rem'};
-  transition: all .3s ease-in-out;
+  margin-left: ${({ $isCollapsed }) => ($isCollapsed ? "16rem" : "0rem")};
+  transition: all 0.3s ease-in-out;
   padding: 2rem;
   min-height: 100vh;
 
   @media (max-width: 1000px) {
-    margin-left: ${({ $isCollapsed }) => $isCollapsed ? '18rem' : '7rem'};
+    margin-left: ${({ $isCollapsed }) => ($isCollapsed ? "18rem" : "7rem")};
   }
 
   @media (max-width: 834px) {
-    margin-left: ${({ $isCollapsed }) => $isCollapsed ? '17rem' : '3rem'};
+    margin-left: ${({ $isCollapsed }) => ($isCollapsed ? "17rem" : "3rem")};
   }
 
   @media (max-width: 768px) {
@@ -145,7 +146,8 @@ const Tab = styled.button<{ $active: boolean }>`
       ? props.theme.colors.primaryGreen
       : props.theme.colors.textSecondary};
   border-bottom: 2px solid
-    ${(props) => (props.$active ? props.theme.colors.primaryGreen : "transparent")};
+    ${(props) =>
+      props.$active ? props.theme.colors.primaryGreen : "transparent"};
   cursor: pointer;
   font-weight: ${(props) => (props.$active ? "600" : "400")};
   transition: all 0.2s ease;
@@ -430,10 +432,14 @@ const ButtonSpinner = styled.div`
   border-top: 2px solid currentColor;
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  
+
   @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
   }
 `;
 
@@ -455,11 +461,16 @@ export default function VendasPage() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [purchaseQuantity, setPurchaseQuantity] = useState(1);
-  
+
   // Estados de loading específicos para cada produto
-  const [productLoadingStates, setProductLoadingStates] = useState<Record<string, {
-    purchasing: boolean;
-  }>>({});
+  const [productLoadingStates, setProductLoadingStates] = useState<
+    Record<
+      string,
+      {
+        purchasing: boolean;
+      }
+    >
+  >({});
 
   useEffect(() => {
     loadData();
@@ -486,31 +497,52 @@ export default function VendasPage() {
   };
 
   // Funções auxiliares para gerenciar estados de loading
-  const setProductLoading = (productId: string, action: 'purchasing', isLoading: boolean) => {
-    setProductLoadingStates(prev => ({
+  const setProductLoading = (
+    productId: string,
+    action: "purchasing",
+    isLoading: boolean,
+  ) => {
+    setProductLoadingStates((prev) => ({
       ...prev,
       [productId]: {
         ...prev[productId],
-        [action]: isLoading
-      }
+        [action]: isLoading,
+      },
     }));
   };
 
-  const getProductLoading = (productId: string, action: 'purchasing') => {
+  const getProductLoading = (productId: string, action: "purchasing") => {
     return productLoadingStates[productId]?.[action] || false;
   };
 
   // Função para atualizar apenas um produto específico
   const updateProduct = (updatedProduct: Product) => {
-    setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p));
+    setProducts((prev) =>
+      prev.map((p) => (p.id === updatedProduct.id ? updatedProduct : p)),
+    );
   };
 
   const handlePurchase = async () => {
     if (!selectedProduct) return;
 
+    // Validação adicional no frontend
+    if (selectedProduct.current_stock >= selectedProduct.max_stock) {
+      toast.error("Estoque já está no máximo permitido");
+      return;
+    }
+
+    const maxAllowed =
+      selectedProduct.max_stock - selectedProduct.current_stock;
+    if (purchaseQuantity > maxAllowed) {
+      toast.error(
+        `Quantidade excede o limite. Máximo permitido: ${maxAllowed} unidades`,
+      );
+      return;
+    }
+
     try {
-      setProductLoading(selectedProduct.id, 'purchasing', true);
-      
+      setProductLoading(selectedProduct.id, "purchasing", true);
+
       const purchaseData: ProductPurchase = {
         product_id: selectedProduct.id,
         quantity: purchaseQuantity,
@@ -518,18 +550,24 @@ export default function VendasPage() {
       };
 
       const result = await purchaseProduct(selectedProduct.id, purchaseData);
-      
+
       // Atualizar apenas o produto específico
       updateProduct(result.product);
-      
+
       toast.success("Compra realizada com sucesso!");
       setShowPurchaseModal(false);
       setPurchaseQuantity(1);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao comprar produto:", error);
-      toast.error("Erro ao realizar compra");
+
+      // Verificar se é erro de limite de estoque
+      if (error.response?.data?.error?.includes("excede o limite máximo")) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error("Erro ao realizar compra");
+      }
     } finally {
-      setProductLoading(selectedProduct.id, 'purchasing', false);
+      setProductLoading(selectedProduct.id, "purchasing", false);
     }
   };
 
@@ -557,291 +595,377 @@ export default function VendasPage() {
     <Container $isCollapsed={!isCollapsed}>
       <SideBar />
       <MainContent $isCollapsed={!isCollapsed}>
-      <Header>
-        <Title>
-          <MdShoppingCart />
-          Sistema de Estoque
-        </Title>
-      </Header>
+        <Header>
+          <Title>
+            <MdShoppingCart />
+            Sistema de Estoque
+          </Title>
+        </Header>
 
-      {/* Estatísticas */}
-      <StatsGrid>
-        <StatCard
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
-          <StatIcon color="#10B981">
-            <MdInventory />
-          </StatIcon>
-          <StatContent>
-            <StatValue>{products.length}</StatValue>
-            <StatLabel>Produtos Cadastrados</StatLabel>
-          </StatContent>
-        </StatCard>
-
-        <StatCard
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <StatIcon color="#F59E0B">
-            <MdWarning />
-          </StatIcon>
-          <StatContent>
-            <StatValue>
-              {products.filter((p) => p.is_low_stock).length}
-            </StatValue>
-            <StatLabel>Produtos com Estoque Baixo</StatLabel>
-          </StatContent>
-        </StatCard>
-
-        <StatCard
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <StatIcon color="#EF4444">
-            <MdCancel />
-          </StatIcon>
-          <StatContent>
-            <StatValue>
-              {products.filter((p) => p.is_out_of_stock).length}
-            </StatValue>
-            <StatLabel>Produtos Fora de Estoque</StatLabel>
-          </StatContent>
-        </StatCard>
-
-        <StatCard
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <StatIcon color="#3B82F6">
-            <MdTrendingUp />
-          </StatIcon>
-          <StatContent>
-            <StatValue>
-              {formatCurrency(salesSummary?.total_revenue || 0)}
-            </StatValue>
-            <StatLabel>Receita Total</StatLabel>
-          </StatContent>
-        </StatCard>
-      </StatsGrid>
-
-      {/* Abas */}
-      <TabsContainer>
-        <Tab
-          $active={activeTab === "products"}
-          onClick={() => setActiveTab("products")}
-        >
-          Produtos e Estoque
-        </Tab>
-        <Tab
-          $active={activeTab === "sales"}
-          onClick={() => setActiveTab("sales")}
-        >
-          Vendas e Relatórios
-        </Tab>
-      </TabsContainer>
-
-      {/* Conteúdo das Abas */}
-      <AnimatePresence mode="wait">
-        {activeTab === "products" && (
-          <motion.div
-            key="products"
+        {/* Estatísticas */}
+        <StatsGrid>
+          <StatCard
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
+            transition={{ delay: 0.1 }}
           >
-            <ProductsGrid>
-              {products.map((product, index) => (
-                <ProductCard
-                  key={product.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  whileHover={{ scale: 1.02 }}
-                >
-                  <ProductHeader>
-                    <ProductName>{product.name}</ProductName>
-                    <ProductCategory>
-                      <CategoryBadge color={product.category_color}>
-                        {product.category_name}
-                      </CategoryBadge>
-                    </ProductCategory>
-                  </ProductHeader>
+            <StatIcon color="#10B981">
+              <MdInventory />
+            </StatIcon>
+            <StatContent>
+              <StatValue>{products.length}</StatValue>
+              <StatLabel>Produtos Cadastrados</StatLabel>
+            </StatContent>
+          </StatCard>
 
-                  <ProductContent>
-                    <PriceRow>
-                      <Price>{formatCurrency(product.current_price)}</Price>
-                      <ProfitMargin $positive={product.profit_margin > 0}>
-                        {product.profit_margin_formatted}
-                      </ProfitMargin>
-                    </PriceRow>
-
-                    <StockInfo>
-                      <StockStatus status={product.stock_status}>
-                        {getStockStatusIcon(product.stock_status)}
-                        {getStockStatusText(product.stock_status)}
-                      </StockStatus>
-                      <StockQuantity>
-                        {formatNumber(product.current_stock)} /{" "}
-                        {formatNumber(product.max_stock)}
-                      </StockQuantity>
-                    </StockInfo>
-
-                    <ActionsRow>
-                      <LoadingButton
-                        $variant="primary"
-                        disabled={getProductLoading(product.id, 'purchasing')}
-                        onClick={() => {
-                          setSelectedProduct(product);
-                          setShowPurchaseModal(true);
-                        }}
-                        whileHover={{ scale: getProductLoading(product.id, 'purchasing') ? 1 : 1.05 }}
-                        whileTap={{ scale: getProductLoading(product.id, 'purchasing') ? 1 : 0.95 }}
-                      >
-                        {getProductLoading(product.id, 'purchasing') ? (
-                          <ButtonSpinner />
-                        ) : (
-                          <>
-                            <MdAdd />
-                            Comprar
-                          </>
-                        )}
-                      </LoadingButton>
-                    </ActionsRow>
-                  </ProductContent>
-
-                  <SupplierInfo>
-                    <SupplierName>
-                      <MdLocalShipping />
-                      {getSupplierById(product.supplier)?.name ||
-                        "Fornecedor não encontrado"}
-                    </SupplierName>
-                  </SupplierInfo>
-                </ProductCard>
-              ))}
-            </ProductsGrid>
-          </motion.div>
-        )}
-
-        {activeTab === "sales" && (
-          <motion.div
-            key="sales"
+          <StatCard
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
+            transition={{ delay: 0.2 }}
           >
-            <div
-              style={{ textAlign: "center", padding: "2rem", color: "#6B7280" }}
-            >
-              <MdTrendingUp size={48} style={{ marginBottom: "1rem" }} />
-              <h3>Relatórios de Vendas</h3>
-              <p>
-                Em breve: gráficos de vendas, produtos mais vendidos e análises
-                detalhadas
-              </p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            <StatIcon color="#F59E0B">
+              <MdWarning />
+            </StatIcon>
+            <StatContent>
+              <StatValue>
+                {products.filter((p) => p.is_low_stock).length}
+              </StatValue>
+              <StatLabel>Produtos com Estoque Baixo</StatLabel>
+            </StatContent>
+          </StatCard>
 
-      {/* Modal de Compra */}
-      <AnimatePresence>
-        {showPurchaseModal && selectedProduct && (
-          <Modal
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setShowPurchaseModal(false)}
+          <StatCard
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
           >
-            <ModalContent
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              onClick={(e: React.MouseEvent) => e.stopPropagation()}
+            <StatIcon color="#EF4444">
+              <MdCancel />
+            </StatIcon>
+            <StatContent>
+              <StatValue>
+                {products.filter((p) => p.is_out_of_stock).length}
+              </StatValue>
+              <StatLabel>Produtos Fora de Estoque</StatLabel>
+            </StatContent>
+          </StatCard>
+
+          <StatCard
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <StatIcon color="#3B82F6">
+              <MdTrendingUp />
+            </StatIcon>
+            <StatContent>
+              <StatValue>
+                {formatCurrency(salesSummary?.total_revenue || 0)}
+              </StatValue>
+              <StatLabel>Receita Total</StatLabel>
+            </StatContent>
+          </StatCard>
+        </StatsGrid>
+
+        {/* Abas */}
+        <TabsContainer>
+          <Tab
+            $active={activeTab === "products"}
+            onClick={() => setActiveTab("products")}
+          >
+            Produtos e Estoque
+          </Tab>
+          <Tab
+            $active={activeTab === "sales"}
+            onClick={() => setActiveTab("sales")}
+          >
+            Vendas e Relatórios
+          </Tab>
+        </TabsContainer>
+
+        {/* Conteúdo das Abas */}
+        <AnimatePresence mode="wait">
+          {activeTab === "products" && (
+            <motion.div
+              key="products"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
             >
-              <ModalHeader>
-                <ModalTitle>Comprar {selectedProduct.name}</ModalTitle>
-                <CloseButton onClick={() => setShowPurchaseModal(false)}>
-                  ×
-                </CloseButton>
-              </ModalHeader>
+              <ProductsGrid>
+                {products.map((product, index) => (
+                  <ProductCard
+                    key={product.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    whileHover={{ scale: 1.02 }}
+                  >
+                    <ProductHeader>
+                      <ProductName>{product.name}</ProductName>
+                      <ProductCategory>
+                        <CategoryBadge color={product.category_color}>
+                          {product.category_name}
+                        </CategoryBadge>
+                      </ProductCategory>
+                    </ProductHeader>
 
-              <FormGroup>
-                <Label>Quantidade</Label>
-                <Input
-                  type="number"
-                  min="1"
-                  value={purchaseQuantity}
-                  onChange={(e) =>
-                    setPurchaseQuantity(parseInt(e.target.value) || 1)
-                  }
-                />
-              </FormGroup>
+                    <ProductContent>
+                      <PriceRow>
+                        <Price>{formatCurrency(product.current_price)}</Price>
+                        <ProfitMargin $positive={product.profit_margin > 0}>
+                          Margem de Lucro:{" "}
+                          {formatCurrency(
+                            (product.sale_price - product.purchase_price) *
+                              product.current_stock,
+                          )}
+                        </ProfitMargin>
+                      </PriceRow>
 
-              <div
-                style={{
-                  background: "#F3F4F6",
-                  padding: "1rem",
-                  borderRadius: "8px",
-                  marginBottom: "1rem",
-                }}
+                      <StockInfo>
+                        <StockStatus status={product.stock_status}>
+                          {getStockStatusIcon(product.stock_status)}
+                          {getStockStatusText(product.stock_status)}
+                        </StockStatus>
+                        <StockQuantity>
+                          {formatNumber(product.current_stock)} /{" "}
+                          {formatNumber(product.max_stock)}
+                          <div
+                            style={{
+                              fontSize: "0.875rem",
+                              color:
+                                product.stock_percentage > 100
+                                  ? "#EF4444"
+                                  : product.stock_percentage > 80
+                                    ? "#F59E0B"
+                                    : "#10B981",
+                              fontWeight: "500",
+                              marginTop: "0.25rem",
+                            }}
+                          >
+                            {product.stock_percentage.toFixed(2)}%
+                          </div>
+                        </StockQuantity>
+                      </StockInfo>
+
+                      <ActionsRow>
+                        <LoadingButton
+                          $variant={
+                            product.current_stock >= product.max_stock
+                              ? "secondary"
+                              : "primary"
+                          }
+                          disabled={
+                            getProductLoading(product.id, "purchasing") ||
+                            product.current_stock >= product.max_stock
+                          }
+                          onClick={() => {
+                            setSelectedProduct(product);
+                            setShowPurchaseModal(true);
+                          }}
+                          whileHover={{
+                            scale: getProductLoading(product.id, "purchasing")
+                              ? 1
+                              : 1.05,
+                          }}
+                          whileTap={{
+                            scale: getProductLoading(product.id, "purchasing")
+                              ? 1
+                              : 0.95,
+                          }}
+                        >
+                          {getProductLoading(product.id, "purchasing") ? (
+                            <ButtonSpinner />
+                          ) : (
+                            <>
+                              <MdAdd />
+                              {product.current_stock >= product.max_stock
+                                ? "Estoque Máximo"
+                                : "Comprar"}
+                            </>
+                          )}
+                        </LoadingButton>
+                      </ActionsRow>
+                    </ProductContent>
+
+                    <SupplierInfo>
+                      <SupplierName>
+                        <MdLocalShipping />
+                        {getSupplierById(product.supplier)?.name ||
+                          "Fornecedor não encontrado"}
+                      </SupplierName>
+                    </SupplierInfo>
+                  </ProductCard>
+                ))}
+              </ProductsGrid>
+            </motion.div>
+          )}
+
+          {activeTab === "sales" && (
+            <motion.div
+              key="sales"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <SalesReportsContainer />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Modal de Compra */}
+        <AnimatePresence>
+          {showPurchaseModal && selectedProduct && (
+            <Modal
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowPurchaseModal(false)}
+            >
+              <ModalContent
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e: React.MouseEvent) => e.stopPropagation()}
               >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    marginBottom: "0.5rem",
-                  }}
-                >
-                  <span>Preço unitário:</span>
-                  <span>{formatCurrency(selectedProduct.purchase_price)}</span>
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    fontWeight: "bold",
-                  }}
-                >
-                  <span>Total:</span>
-                  <span>
-                    {formatCurrency(
-                      selectedProduct.purchase_price * purchaseQuantity,
+                <ModalHeader>
+                  <ModalTitle>Comprar {selectedProduct.name}</ModalTitle>
+                  <CloseButton onClick={() => setShowPurchaseModal(false)}>
+                    ×
+                  </CloseButton>
+                </ModalHeader>
+
+                <FormGroup>
+                  <Label>Quantidade</Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    max={
+                      selectedProduct
+                        ? Math.max(
+                            0,
+                            selectedProduct.max_stock -
+                              selectedProduct.current_stock,
+                          )
+                        : undefined
+                    }
+                    value={purchaseQuantity}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value) || 1;
+                      const maxAllowed = selectedProduct
+                        ? Math.max(
+                            0,
+                            selectedProduct.max_stock -
+                              selectedProduct.current_stock,
+                          )
+                        : value;
+                      setPurchaseQuantity(Math.min(value, maxAllowed));
+                    }}
+                  />
+                  {selectedProduct &&
+                    selectedProduct.current_stock >=
+                      selectedProduct.max_stock && (
+                      <div
+                        style={{
+                          fontSize: "0.875rem",
+                          color: "#EF4444",
+                          marginTop: "0.5rem",
+                          fontWeight: "500",
+                        }}
+                      >
+                        ⚠️ Estoque já está no máximo permitido
+                      </div>
                     )}
-                  </span>
+                  {selectedProduct &&
+                    selectedProduct.current_stock <
+                      selectedProduct.max_stock && (
+                      <div
+                        style={{
+                          fontSize: "0.875rem",
+                          color: "#6B7280",
+                          marginTop: "0.5rem",
+                        }}
+                      >
+                        Máximo:{" "}
+                        {selectedProduct.max_stock -
+                          selectedProduct.current_stock}{" "}
+                        unidades
+                      </div>
+                    )}
+                </FormGroup>
+
+                <div
+                  style={{
+                    background: "#F3F4F6",
+                    padding: "1rem",
+                    borderRadius: "8px",
+                    marginBottom: "1rem",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      marginBottom: "0.5rem",
+                    }}
+                  >
+                    <span>Preço unitário:</span>
+                    <span>
+                      {formatCurrency(selectedProduct.purchase_price)}
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    <span>Total:</span>
+                    <span>
+                      {formatCurrency(
+                        selectedProduct.purchase_price * purchaseQuantity,
+                      )}
+                    </span>
+                  </div>
                 </div>
-              </div>
 
-              <ModalActions>
-                <Button
-                  $variant="secondary"
-                  onClick={() => setShowPurchaseModal(false)}
-                >
-                  Cancelar
-                </Button>
-                <LoadingButton 
-                  $variant="primary" 
-                  disabled={selectedProduct ? getProductLoading(selectedProduct.id, 'purchasing') : false}
-                  onClick={handlePurchase}
-                >
-                  {selectedProduct && getProductLoading(selectedProduct.id, 'purchasing') ? (
-                    <ButtonSpinner />
-                  ) : (
-                    'Confirmar Compra'
-                  )}
-                </LoadingButton>
-              </ModalActions>
-            </ModalContent>
-          </Modal>
-        )}
-      </AnimatePresence>
-
+                <ModalActions>
+                  <Button
+                    $variant="secondary"
+                    onClick={() => setShowPurchaseModal(false)}
+                  >
+                    Cancelar
+                  </Button>
+                  <LoadingButton
+                    $variant="primary"
+                    disabled={
+                      selectedProduct
+                        ? getProductLoading(selectedProduct.id, "purchasing") ||
+                          selectedProduct.current_stock >=
+                            selectedProduct.max_stock
+                        : false
+                    }
+                    onClick={handlePurchase}
+                  >
+                    {selectedProduct &&
+                    getProductLoading(selectedProduct.id, "purchasing") ? (
+                      <ButtonSpinner />
+                    ) : selectedProduct &&
+                      selectedProduct.current_stock >=
+                        selectedProduct.max_stock ? (
+                      "Estoque Máximo"
+                    ) : (
+                      "Confirmar Compra"
+                    )}
+                  </LoadingButton>
+                </ModalActions>
+              </ModalContent>
+            </Modal>
+          )}
+        </AnimatePresence>
       </MainContent>
     </Container>
   );

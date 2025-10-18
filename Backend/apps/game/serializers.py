@@ -139,6 +139,7 @@ class ProductSerializer(serializers.ModelSerializer):
     is_low_stock = serializers.ReadOnlyField()
     is_out_of_stock = serializers.ReadOnlyField()
     stock_status = serializers.ReadOnlyField()
+    stock_percentage = serializers.ReadOnlyField()
     
     class Meta:
         model = Product
@@ -149,7 +150,7 @@ class ProductSerializer(serializers.ModelSerializer):
             'profit_margin_formatted', 'current_stock', 'min_stock', 'max_stock',
             'shelf_life_days', 'is_active', 'is_promotional', 'promotional_price',
             'promotional_start_date', 'promotional_end_date', 'is_low_stock',
-            'is_out_of_stock', 'stock_status', 'created_at', 'updated_at'
+            'is_out_of_stock', 'stock_status', 'stock_percentage', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
 

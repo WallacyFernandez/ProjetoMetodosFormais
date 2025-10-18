@@ -6,7 +6,7 @@ export interface GameSession {
   game_start_date: string;
   current_game_date: string;
   game_end_date: string;
-  status: 'NOT_STARTED' | 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'FAILED';
+  status: "NOT_STARTED" | "ACTIVE" | "PAUSED" | "COMPLETED" | "FAILED";
   time_acceleration: number;
   total_score: number;
   days_survived: number;
@@ -79,7 +79,8 @@ export interface Product {
   promotional_end_date?: string;
   is_low_stock: boolean;
   is_out_of_stock: boolean;
-  stock_status: 'NORMAL' | 'LOW_STOCK' | 'OUT_OF_STOCK';
+  stock_status: "NORMAL" | "LOW_STOCK" | "OUT_OF_STOCK";
+  stock_percentage: number;
   created_at: string;
   updated_at: string;
 }
@@ -88,7 +89,7 @@ export interface ProductStockHistory {
   id: string;
   product: string;
   product_name: string;
-  operation: 'PURCHASE' | 'SALE' | 'ADJUSTMENT' | 'LOSS' | 'RETURN';
+  operation: "PURCHASE" | "SALE" | "ADJUSTMENT" | "LOSS" | "RETURN";
   operation_display: string;
   quantity: number;
   previous_stock: number;
@@ -173,10 +174,73 @@ export interface SalesSummary {
   }>;
 }
 
+// Tipos para relatórios de vendas
+export interface SalesChartData {
+  sales_by_period: Array<{
+    period: string;
+    period_key: string;
+    total_quantity: number;
+    total_revenue: number;
+    revenue_formatted: string;
+  }>;
+  top_products: Array<{
+    product__id: string;
+    product__name: string;
+    product__category__name: string;
+    product__category__color: string;
+    total_quantity: number;
+    total_revenue: number;
+  }>;
+  sales_by_category: Array<{
+    product__category__name: string;
+    product__category__color: string;
+    total_quantity: number;
+    total_revenue: number;
+  }>;
+  period: "daily" | "weekly" | "monthly";
+  start_date: string;
+  end_date: string;
+}
+
+export interface DetailedAnalysis {
+  general_stats: {
+    total_quantity: number;
+    total_revenue: number;
+    total_revenue_formatted: string;
+    avg_unit_price: number;
+    avg_unit_price_formatted: string;
+    total_transactions: number;
+  };
+  best_selling_product: {
+    product__name: string;
+    total_revenue: number;
+  } | null;
+  most_sold_product: {
+    product__name: string;
+    total_quantity: number;
+  } | null;
+  sales_by_weekday: Array<{
+    weekday: string;
+    total_quantity: number;
+    total_revenue: number;
+  }>;
+  growth_analysis: {
+    current_revenue: number;
+    previous_revenue: number;
+    growth_percentage: number;
+    growth_formatted: string;
+  };
+  period: {
+    start_date: string;
+    end_date: string;
+    days_back: number;
+  };
+}
+
 // Tipos para configurações do jogo
 export interface GameSettings {
   time_acceleration: number;
-  difficulty: 'EASY' | 'NORMAL' | 'HARD';
+  difficulty: "EASY" | "NORMAL" | "HARD";
   auto_save: boolean;
   sound_enabled: boolean;
 }
@@ -186,7 +250,7 @@ export interface GameEvent {
   id: string;
   title: string;
   description: string;
-  event_type: 'POSITIVE' | 'NEGATIVE' | 'NEUTRAL';
+  event_type: "POSITIVE" | "NEGATIVE" | "NEUTRAL";
   impact_amount?: number;
   impact_description?: string;
   duration_days?: number;
@@ -198,7 +262,7 @@ export interface GameEvent {
 export interface Employee {
   id: string;
   name: string;
-  position: 'CASHIER' | 'STOCKER' | 'MANAGER';
+  position: "CASHIER" | "STOCKER" | "MANAGER";
   position_display: string;
   salary: number;
   performance: number;
@@ -209,7 +273,7 @@ export interface Employee {
 
 // Tipos para relatórios do jogo
 export interface GameReport {
-  period: 'DAILY' | 'WEEKLY' | 'MONTHLY';
+  period: "DAILY" | "WEEKLY" | "MONTHLY";
   start_date: string;
   end_date: string;
   total_sales: number;
@@ -227,7 +291,7 @@ export interface GameObjective {
   id: string;
   title: string;
   description: string;
-  objective_type: 'SURVIVAL' | 'PROFIT' | 'GROWTH' | 'EFFICIENCY';
+  objective_type: "SURVIVAL" | "PROFIT" | "GROWTH" | "EFFICIENCY";
   target_value: number;
   current_value: number;
   progress_percentage: number;

@@ -10,6 +10,8 @@ import {
   ProductPurchase,
   SaleSimulation,
   SalesSummary,
+  SalesChartData,
+  DetailedAnalysis,
 } from "@/types/game";
 import { UserBalance } from "@/types/finance";
 
@@ -291,6 +293,25 @@ export async function simulateSale(saleData: SaleSimulation): Promise<any> {
 export async function getSalesSummary(): Promise<SalesSummary> {
   const response = await http.get<SalesSummary>(
     "/api/v1/game/sales/sales_summary/",
+  );
+  return response;
+}
+
+export async function getSalesChartsData(
+  period: "daily" | "weekly" | "monthly" = "monthly",
+  daysBack: number = 30,
+): Promise<SalesChartData> {
+  const response = await http.get<SalesChartData>(
+    `/api/v1/game/sales/sales_charts_data/?period=${period}&days_back=${daysBack}`,
+  );
+  return response;
+}
+
+export async function getDetailedAnalysis(
+  daysBack: number = 30,
+): Promise<DetailedAnalysis> {
+  const response = await http.get<DetailedAnalysis>(
+    `/api/v1/game/sales/detailed_analysis/?days_back=${daysBack}`,
   );
   return response;
 }
