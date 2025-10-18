@@ -247,7 +247,8 @@ class GameSession(BaseModel):
                             category=vendas_category,
                             amount=revenue,
                             description=f'Venda: {product.name} ({quantity}x)',
-                            transaction_type='INCOME'
+                            transaction_type='INCOME',
+                            transaction_date=self.current_game_date
                         )
                         
                         # Incrementa contador de vendas do dia

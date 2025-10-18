@@ -74,13 +74,17 @@ class ProductSalesViewSet(viewsets.ViewSet):
                             'icon': '💰'
                         }
                     )
+                    # Buscar data atual do jogo
+                    from apps.game.models import GameSession
+                    game_session = GameSession.objects.get(user=request.user)
+                    
                     Transaction.objects.create(
                         user=request.user,
                         amount=total_value,
                         transaction_type='INCOME',
                         category=vendas_category,
                         description=f'Venda: {product.name} - {quantity} unidades',
-                        transaction_date=date.today()
+                        transaction_date=game_session.current_game_date
                     )
                     
                     return Response({

@@ -92,7 +92,8 @@ def process_monthly_payroll_on_time_update(sender, instance, created, **kwargs):
                 category=payroll_category,
                 amount=total_payroll,
                 description=f'Folha de pagamento automática - {current_month.strftime("%m/%Y")}',
-                transaction_type='EXPENSE'
+                transaction_type='EXPENSE',
+                transaction_date=instance.current_game_date
             )
             
             # Marcar como pago

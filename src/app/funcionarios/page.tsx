@@ -7,7 +7,6 @@ import { IsSidebarOnContext } from "@/context/IsSidebarOnContext";
 import PageHeader from "@/components/molecules/PageHeader";
 import EmployeeTable from "@/components/organisms/EmployeeTable";
 import EmployeeFormModal from "@/components/organisms/EmployeeFormModal";
-import PayrollProcessModal from "@/components/organisms/PayrollProcessModal";
 import PositionFormModal, {
   type PositionFormData,
 } from "@/components/organisms/PositionFormModal";
@@ -18,7 +17,6 @@ import type {
   EmployeeCreate,
   EmployeePosition,
   EmployeeSummary,
-  PayrollProcess,
 } from "@/types/employee";
 import { toast } from "react-toastify";
 import { showHttpErrorToast } from "@/utils/httpErrorToast";
@@ -156,7 +154,6 @@ export default function FuncionariosPage() {
   const [summary, setSummary] = useState<EmployeeSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
-  const [isPayrollModalOpen, setIsPayrollModalOpen] = useState(false);
   const [isPositionModalOpen, setIsPositionModalOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(
     null,
@@ -248,17 +245,6 @@ export default function FuncionariosPage() {
     }
   };
 
-  const handleProcessPayroll = async (data: PayrollProcess) => {
-    try {
-      const result = await EmployeeServices.processMonthlyPayments(data);
-      toast.success(result.message);
-      loadData();
-      setIsPayrollModalOpen(false);
-    } catch (error) {
-      showHttpErrorToast(error as any);
-      throw error;
-    }
-  };
 
   const handleCreateDefaultPositions = async () => {
     if (!confirm("Deseja criar os cargos padrão?")) return;
@@ -330,12 +316,6 @@ export default function FuncionariosPage() {
               >
                 + Novo Cargo
               </Button>
-              <Button
-                $variant="success"
-                onClick={() => setIsPayrollModalOpen(true)}
-              >
-                Processar Folha
-              </Button>
               <Button $variant="primary" onClick={openCreateModal}>
                 + Novo Funcionário
               </Button>
@@ -371,11 +351,6 @@ export default function FuncionariosPage() {
           positions={positions}
         />
 
-        <PayrollProcessModal
-          isOpen={isPayrollModalOpen}
-          onClose={() => setIsPayrollModalOpen(false)}
-          onSubmit={handleProcessPayroll}
-        />
 
         <PositionFormModal
           isOpen={isPositionModalOpen}

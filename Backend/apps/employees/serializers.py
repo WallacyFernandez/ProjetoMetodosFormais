@@ -213,18 +213,6 @@ class PayrollCreateSerializer(serializers.ModelSerializer):
         return value
 
 
-class PayrollProcessSerializer(serializers.Serializer):
-    """
-    Serializer para processamento de pagamentos mensais.
-    """
-    payment_month = serializers.DateField()
-    include_inactive = serializers.BooleanField(default=False)
-
-    def validate_payment_month(self, value):
-        """Valida o mês de pagamento."""
-        if value > date.today():
-            raise serializers.ValidationError("Mês de pagamento não pode ser futuro.")
-        return value
 
 
 class PayrollHistorySerializer(serializers.ModelSerializer):

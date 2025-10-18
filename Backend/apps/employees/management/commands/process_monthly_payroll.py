@@ -189,7 +189,8 @@ class Command(BaseCommand):
                     category=payroll_category,
                     amount=total_amount,
                     description=f'Folha de pagamento - {payment_month.strftime("%m/%Y")}',
-                    transaction_type='EXPENSE'
+                    transaction_type='EXPENSE',
+                    transaction_date=payment_month
                 )
 
                 # Marcar como pago

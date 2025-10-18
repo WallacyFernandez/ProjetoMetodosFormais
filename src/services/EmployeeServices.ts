@@ -6,11 +6,9 @@ import type {
   EmployeePosition,
   Payroll,
   PayrollCreate,
-  PayrollProcess,
   PayrollHistory,
   EmployeeSummary,
   PayrollSummary,
-  PayrollProcessResponse,
 } from "@/types/employee";
 
 class EmployeeServices {
@@ -203,17 +201,6 @@ class EmployeeServices {
     await http.del(`/api/v1/employees/payrolls/${id}/`);
   }
 
-  /**
-   * Processar pagamentos mensais
-   */
-  async processMonthlyPayments(
-    data: PayrollProcess,
-  ): Promise<PayrollProcessResponse> {
-    return await http.post<PayrollProcessResponse>(
-      "/api/v1/employees/payrolls/process_monthly_payments/",
-      data,
-    );
-  }
 
   /**
    * Obter folhas de pagamento por mês

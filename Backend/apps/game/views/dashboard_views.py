@@ -116,21 +116,21 @@ class GameDashboardViewSet(viewsets.ViewSet):
             total_profit = 0
             
             # Busca todos os meses que têm transações
-            months_with_transactions = transactions.values_list('created_at__year', 'created_at__month').distinct().order_by('-created_at__year', '-created_at__month')
+            months_with_transactions = transactions.values_list('transaction_date__year', 'transaction_date__month').distinct().order_by('-transaction_date__year', '-transaction_date__month')
             
             for year, month in months_with_transactions:
                 # Calcula receitas do mês (vendas)
                 monthly_revenue = transactions.filter(
                     transaction_type='INCOME',
-                    created_at__year=year,
-                    created_at__month=month
+                    transaction_date__year=year,
+                    transaction_date__month=month
                 ).aggregate(total=Sum('amount'))['total'] or 0
                 
                 # Calcula despesas do mês (compras)
                 monthly_expenses = transactions.filter(
                     transaction_type='EXPENSE',
-                    created_at__year=year,
-                    created_at__month=month
+                    transaction_date__year=year,
+                    transaction_date__month=month
                 ).aggregate(total=Sum('amount'))['total'] or 0
                 
                 # Calcula lucro bruto (receitas - despesas)

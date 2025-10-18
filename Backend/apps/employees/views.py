@@ -18,7 +18,7 @@ from .models import EmployeePosition, Employee, Payroll, PayrollHistory
 from .serializers import (
     EmployeePositionSerializer, EmployeeSerializer, EmployeeCreateSerializer,
     EmployeeTerminateSerializer, PayrollSerializer, PayrollCreateSerializer,
-    PayrollProcessSerializer, PayrollHistorySerializer, EmployeeSummarySerializer,
+    PayrollHistorySerializer, EmployeeSummarySerializer,
     PayrollSummarySerializer
 )
 
@@ -174,119 +174,6 @@ class PayrollViewSet(viewsets.ModelViewSet):
             return PayrollCreateSerializer
         return PayrollSerializer
 
-    @action(detail=False, methods=['post'])
-    def process_monthly_payments(self, request):
-        """Processa pagamentos mensais de todos os funcionários."""
-        serializer = PayrollProcessSerializer(data=request.data)
-        
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
-        payment_month = serializer.validated_data['payment_month']
-        include_inactive = serializer.validated_data['include_inactive']
-        
-        try:
-            with transaction.atomic():
-                # Buscar funcionários
-                employees_query = Employee.objects.filter(user=request.user)
-                if not include_inactive:
-                    employees_query = employees_query.filter(employment_status='ACTIVE')
-                
-                employees = employees_query.all()
-                
-                if not employees.exists():
-                    return Response(
-                        {'error': 'Nenhum funcionário encontrado'},
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
-                
-                # Verificar se já existe folha para este mês
-                existing_payrolls = Payroll.objects.filter(
-                    employee__user=request.user,
-                    payment_month=payment_month
-                )
-                
-                if existing_payrolls.exists():
-                    return Response(
-                        {'error': f'Folha de pagamento para {payment_month.strftime("%m/%Y")} já existe'},
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
-                
-                # Criar folhas de pagamento
-                created_payrolls = []
-                total_amount = Decimal('0.00')
-                
-                for employee in employees:
-                    payroll = Payroll.objects.create(
-                        employee=employee,
-                        payment_month=payment_month,
-                        base_salary=employee.salary,
-                        overtime_hours=Decimal('0.00'),
-                        overtime_value=Decimal('0.00'),
-                        bonus=Decimal('0.00'),
-                        deductions=Decimal('0.00'),
-                        notes=f'Pagamento mensal automático - {payment_month.strftime("%m/%Y")}'
-                    )
-                    created_payrolls.append(payroll)
-                    total_amount += payroll.total_amount
-                
-                # Processar pagamentos (debitar do saldo)
-                user_balance = UserBalance.objects.get(user=request.user)
-                
-                if user_balance.current_balance < total_amount:
-                    return Response(
-                        {'error': f'Saldo insuficiente. Necessário: R$ {total_amount:,.2f}, Disponível: R$ {user_balance.current_balance:,.2f}'},
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
-                
-                # Debitar do saldo
-                user_balance.subtract_amount(total_amount)
-                
-                # Criar transação financeira
-                payroll_category, _ = Category.objects.get_or_create(
-                    name='Folha de Pagamento',
-                    defaults={
-                        'description': 'Pagamento de salários dos funcionários',
-                        'category_type': 'EXPENSE'
-                    }
-                )
-                
-                Transaction.objects.create(
-                    user=request.user,
-                    category=payroll_category,
-                    amount=total_amount,
-                    description=f'Folha de pagamento - {payment_month.strftime("%m/%Y")}',
-                    transaction_type='EXPENSE'
-                )
-                
-                # Marcar como pago
-                for payroll in created_payrolls:
-                    payroll.mark_as_paid()
-                
-                # Criar histórico
-                PayrollHistory.objects.create(
-                    user=request.user,
-                    payment_month=payment_month,
-                    total_employees=len(created_payrolls),
-                    total_amount=total_amount
-                )
-                
-                # Serializar resposta
-                payroll_serializer = PayrollSerializer(created_payrolls, many=True)
-                
-                return Response({
-                    'message': f'Pagamentos processados com sucesso para {payment_month.strftime("%m/%Y")}',
-                    'total_amount': total_amount,
-                    'total_amount_formatted': f"R$ {total_amount:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.'),
-                    'employees_count': len(created_payrolls),
-                    'payrolls': payroll_serializer.data
-                }, status=status.HTTP_201_CREATED)
-                
-        except Exception as e:
-            return Response(
-                {'error': f'Erro ao processar pagamentos: {str(e)}'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
 
     @action(detail=False, methods=['get'])
     def by_month(self, request):

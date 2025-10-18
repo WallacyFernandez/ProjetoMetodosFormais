@@ -102,10 +102,6 @@ export interface PayrollCreate {
   notes?: string;
 }
 
-export interface PayrollProcess {
-  payment_month: string;
-  include_inactive?: boolean;
-}
 
 export interface PayrollHistory {
   id: string;
@@ -137,10 +133,3 @@ export interface PayrollSummary {
   payrolls: Payroll[];
 }
 
-export interface PayrollProcessResponse {
-  message: string;
-  total_amount: number;
-  total_amount_formatted: string;
-  employees_count: number;
-  payrolls: Payroll[];
-}
