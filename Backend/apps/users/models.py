@@ -4,8 +4,8 @@ Modelos do app de usuários.
 
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
-from apps.core.models import BaseModel, ActiveManager, AllObjectsManager
 from django.core.validators import RegexValidator
+from apps.core.models import BaseModel, ActiveManager, AllObjectsManager
 
 
 class User(AbstractUser, BaseModel):

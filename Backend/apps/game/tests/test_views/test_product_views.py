@@ -15,7 +15,7 @@ from apps.finance.models import UserBalance
 User = get_user_model()
 
 
-class ProductCategoryViewSetTest(TestCase):
+class TestProductCategoryViewSet(TestCase):
     """Testes para ProductCategoryViewSet."""
 
     def setUp(self):
@@ -94,7 +94,7 @@ class ProductCategoryViewSetTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
-class SupplierViewSetTest(TestCase):
+class TestSupplierViewSet(TestCase):
     """Testes para SupplierViewSet."""
 
     def setUp(self):
@@ -146,7 +146,7 @@ class SupplierViewSetTest(TestCase):
             self.assertEqual(response.data[0]['name'], 'Ativo')
 
 
-class ProductViewSetTest(TransactionTestCase):
+class TestProductViewSet(TransactionTestCase):
     """Testes para ProductViewSet."""
 
     def setUp(self):

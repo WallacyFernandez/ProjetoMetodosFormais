@@ -17,7 +17,7 @@ from apps.finance.models import UserBalance
 User = get_user_model()
 
 
-class GameDashboardViewSetTest(TestCase):
+class TestGameDashboardViewSet(TestCase):
     """Testes para GameDashboardViewSet."""
 
     def setUp(self):

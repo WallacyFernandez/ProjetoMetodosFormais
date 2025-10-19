@@ -25,7 +25,7 @@ User = get_user_model()
 
 
 @pytest.mark.integration
-class GameFlowIntegrationTest(TransactionTestCase):
+class TestGameFlowIntegration(TransactionTestCase):
     """
     Testes de integração para fluxos completos do jogo.
     Simula o ciclo completo: compra → venda → relatórios.
@@ -309,7 +309,7 @@ class GameFlowIntegrationTest(TransactionTestCase):
 
 @pytest.mark.integration
 @pytest.mark.slow
-class PerformanceIntegrationTest(TransactionTestCase):
+class TestPerformanceIntegration(TransactionTestCase):
     """
     Testes de performance para operações em lote.
     """
@@ -440,7 +440,7 @@ class PerformanceIntegrationTest(TransactionTestCase):
 
 @pytest.mark.integration
 @pytest.mark.slow
-class ConcurrencyIntegrationTest(TransactionTestCase):
+class TestConcurrencyIntegration(TransactionTestCase):
     """
     Testes de concorrência para vendas simultâneas.
     """

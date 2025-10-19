@@ -17,7 +17,7 @@ from apps.game.serializers import (
 User = get_user_model()
 
 
-class GameSessionSerializerTest(TestCase):
+class TestGameSessionSerializer(TestCase):
     """Testes para GameSessionSerializer."""
 
     def setUp(self):
@@ -76,7 +76,7 @@ class GameSessionSerializerTest(TestCase):
         self.assertIn('time_acceleration', serializer.errors)
 
 
-class ProductCategorySerializerTest(TestCase):
+class TestProductCategorySerializer(TestCase):
     """Testes para ProductCategorySerializer."""
 
     def test_serialize_product_category(self):
@@ -116,7 +116,7 @@ class ProductCategorySerializerTest(TestCase):
         self.assertEqual(category.color, '#3B82F6')
 
 
-class SupplierSerializerTest(TestCase):
+class TestSupplierSerializer(TestCase):
     """Testes para SupplierSerializer."""
 
     def test_serialize_supplier(self):
@@ -165,7 +165,7 @@ class SupplierSerializerTest(TestCase):
         self.assertEqual(supplier.delivery_time_days, 2)
 
 
-class ProductSerializerTest(TestCase):
+class TestProductSerializer(TestCase):
     """Testes para ProductSerializer."""
 
     def setUp(self):
@@ -251,7 +251,7 @@ class ProductSerializerTest(TestCase):
         self.assertEqual(product.sale_price, Decimal('12.00'))
 
 
-class ProductStockHistorySerializerTest(TestCase):
+class TestProductStockHistorySerializer(TestCase):
     """Testes para ProductStockHistorySerializer."""
 
     def setUp(self):
@@ -318,7 +318,7 @@ class ProductStockHistorySerializerTest(TestCase):
         self.assertEqual(data['product_name'], 'Arroz 5kg')
 
 
-class RealtimeSaleSerializerTest(TestCase):
+class TestRealtimeSaleSerializer(TestCase):
     """Testes para RealtimeSaleSerializer."""
 
     def setUp(self):
@@ -388,7 +388,7 @@ class RealtimeSaleSerializerTest(TestCase):
         # category_name não está no serializer básico
 
 
-class GameDashboardSerializerTest(TestCase):
+class TestGameDashboardSerializer(TestCase):
     """Testes para GameDashboardSerializer."""
 
     def setUp(self):
@@ -436,7 +436,7 @@ class GameDashboardSerializerTest(TestCase):
         self.assertTrue(data['stock_alerts']['has_alerts'])
 
 
-class ProductStockOperationSerializerTest(TestCase):
+class TestProductStockOperationSerializer(TestCase):
     """Testes para ProductStockOperationSerializer."""
 
     def test_valid_data(self):
@@ -483,7 +483,7 @@ class ProductStockOperationSerializerTest(TestCase):
         self.assertIsNone(serializer.validated_data.get('description'))
 
 
-class ProductPurchaseSerializerTest(TestCase):
+class TestProductPurchaseSerializer(TestCase):
     """Testes para ProductPurchaseSerializer."""
 
     def test_valid_data(self):

@@ -15,7 +15,7 @@ from apps.finance.models import UserBalance, Transaction, Category
 User = get_user_model()
 
 
-class GameSessionModelTest(TestCase):
+class TestGameSessionModel(TestCase):
     """Testes para o modelo GameSession."""
 
     def setUp(self):

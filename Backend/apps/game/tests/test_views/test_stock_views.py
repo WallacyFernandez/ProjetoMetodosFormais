@@ -16,7 +16,7 @@ from apps.finance.models import UserBalance
 User = get_user_model()
 
 
-class ProductStockHistoryViewSetTest(TestCase):
+class TestProductStockHistoryViewSet(TestCase):
     """Testes para ProductStockHistoryViewSet."""
 
     def setUp(self):

@@ -12,7 +12,7 @@ from apps.game.models import GameSession, ProductCategory, Supplier, Product, Pr
 User = get_user_model()
 
 
-class ProductStockHistoryModelTest(TestCase):
+class TestProductStockHistoryModel(TestCase):
     """Testes para o modelo ProductStockHistory."""
 
     def setUp(self):
@@ -104,7 +104,7 @@ class ProductStockHistoryModelTest(TestCase):
         self.assertEqual(histories[0].created_at, history2.created_at)
 
 
-class RealtimeSaleModelTest(TestCase):
+class TestRealtimeSaleModel(TestCase):
     """Testes para o modelo RealtimeSale."""
 
     def setUp(self):

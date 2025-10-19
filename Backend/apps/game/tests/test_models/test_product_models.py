@@ -10,7 +10,7 @@ from datetime import date
 from apps.game.models import ProductCategory, Supplier, Product
 
 
-class ProductCategoryModelTest(TestCase):
+class TestProductCategoryModel(TestCase):
     """Testes para o modelo ProductCategory."""
 
     def test_create_product_category(self):
@@ -65,7 +65,7 @@ class ProductCategoryModelTest(TestCase):
         self.assertEqual(names, ['Categoria A', 'Categoria B', 'Categoria C'])
 
 
-class SupplierModelTest(TestCase):
+class TestSupplierModel(TestCase):
     """Testes para o modelo Supplier."""
 
     def test_create_supplier(self):
@@ -152,7 +152,7 @@ class SupplierModelTest(TestCase):
         self.assertEqual(names, ['Fornecedor A', 'Fornecedor B', 'Fornecedor C'])
 
 
-class ProductModelTest(TestCase):
+class TestProductModel(TestCase):
     """Testes para o modelo Product."""
 
     def setUp(self):

@@ -14,7 +14,7 @@ from apps.finance.models import UserBalance
 User = get_user_model()
 
 
-class EmployeePositionModelTest(TestCase):
+class TestEmployeePositionModel(TestCase):
     """Testes para o modelo EmployeePosition."""
 
     def setUp(self):
@@ -51,7 +51,7 @@ class EmployeePositionModelTest(TestCase):
             self.assertIn('department', position)
 
 
-class EmployeeModelTest(TestCase):
+class TestEmployeeModel(TestCase):
     """Testes para o modelo Employee."""
 
     def setUp(self):
@@ -132,7 +132,7 @@ class EmployeeModelTest(TestCase):
             employee.full_clean()
 
 
-class PayrollModelTest(TestCase):
+class TestPayrollModel(TestCase):
     """Testes para o modelo Payroll."""
 
     def setUp(self):
@@ -194,7 +194,7 @@ class PayrollModelTest(TestCase):
         self.assertEqual(str(self.payroll), expected)
 
 
-class PayrollHistoryModelTest(TestCase):
+class TestPayrollHistoryModel(TestCase):
     """Testes para o modelo PayrollHistory."""
 
     def setUp(self):

@@ -3,6 +3,7 @@ Testes para o app de autenticação.
 """
 
 import pytest
+from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
 from django.contrib.auth import get_user_model
@@ -11,7 +12,7 @@ User = get_user_model()
 
 
 @pytest.mark.django_db
-class TestAuthentication:
+class TestAuthentication(TestCase):
     """Testes para endpoints de autenticação."""
 
     def test_login_success(self, api_client, user):

@@ -12,7 +12,7 @@ from apps.finance.models import UserBalance
 User = get_user_model()
 
 
-class GameSignalsTest(TestCase):
+class TestGameSignals(TestCase):
     """Testes para signals do jogo."""
 
     def setUp(self):
