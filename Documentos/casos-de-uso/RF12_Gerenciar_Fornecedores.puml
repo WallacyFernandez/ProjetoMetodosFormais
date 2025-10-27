@@ -1,0 +1,277 @@
+@startuml RF12_Gerenciar_Fornecedores
+!theme plain
+
+' Configuração de cores
+skinparam actor {
+    BackgroundColor #87CEEB
+    BorderColor #4682B4
+}
+
+skinparam usecase {
+    BackgroundColor #98FB98
+    BorderColor #228B22
+}
+
+skinparam note {
+    BackgroundColor #FFFACD
+    BorderColor #DAA520
+}
+
+skinparam package {
+    BackgroundColor #F5F5F5
+    BorderColor #696969
+}
+
+left to right direction
+
+actor "Usuário Autenticado" as User
+
+package "Sistema de Gestão do Supermercado" {
+    
+    usecase (Main) "UC-12: Gerenciar Fornecedores" as UC_Main
+    
+    ' Fluxo principal
+    usecase (1) "Acessar Gestão de Fornecedores" as UC_Access
+    usecase (2) "Visualizar Fornecedores Existentes" as UC_View
+    usecase (3) "Abrir Formulário de Cadastro" as UC_OpenForm
+    usecase (4) "Preencher Dados do Fornecedor" as UC_Fill
+    usecase (5) "Validar Dados do Fornecedor" as UC_Validate
+    usecase (6) "Salvar Fornecedor" as UC_Save
+    usecase (7) "Disponibilizar Fornecedor" as UC_MakeAvailable
+    
+    ' Campos do formulário
+    usecase (N) "Informar Nome" as UC_Name
+    usecase (CP) "Informar Pessoa de Contato" as UC_ContactPerson
+    usecase (E) "Informar Email" as UC_Email
+    usecase (P) "Informar Telefone" as UC_Phone
+    usecase (A) "Informar Endereço" as UC_Address
+    usecase (PD) "Informar Prazo de Entrega" as UC_DeliveryTime
+    usecase (MO) "Informar Valor Mínimo do Pedido" as UC_MinOrder
+    usecase (RS) "Informar Pontuação de Confiabilidade" as UC_Reliability
+    
+    ' Campos opcionais
+    usecase (OP1) "Pessoa de Contato (Opcional)" as UC_OptionalContact
+    usecase (OP2) "Email (Opcional)" as UC_OptionalEmail
+    usecase (OP3) "Telefone (Opcional)" as UC_OptionalPhone
+    usecase (OP4) "Endereço (Opcional)" as UC_OptionalAddress
+    
+    ' Operações disponíveis
+    usecase (CR) "Criar Fornecedor" as UC_Create
+    usecase (ED) "Editar Fornecedor" as UC_Edit
+    usecase (DL) "Excluir Fornecedor" as UC_Delete
+    usecase (VW) "Visualizar Fornecedor" as UC_ViewDetails
+    
+    ' Validações
+    usecase (V1) "Validar Campos Obrigatórios" as UC_CheckRequired
+    usecase (V2) "Validar Email (se informado)" as UC_CheckEmail
+    usecase (V3) "Validar Prazo de Entrega" as UC_CheckDelivery
+    usecase (V4) "Validar Valores e Pontuações" as UC_CheckValues
+    
+    ' Fluxo secundário
+    usecase (FS1) "Campos Obrigatórios Vazios" as UC_RequiredEmpty
+    usecase (FS1a) "Exibir Mensagem de Erro" as UC_ShowError
+    usecase (FS1b) "Retornar ao Formulário" as UC_ReturnForm
+}
+
+' Fluxo principal
+User --> UC_Access
+UC_Access --> UC_Main
+UC_Main --> UC_View : "1-2. Sistema exibe fornecedores"
+UC_View --> UC_OpenForm : "3. Usuário pode cadastrar novo fornecedor"
+UC_OpenForm --> UC_Fill : "4. Usuário preenche formulário"
+UC_Fill --> UC_Validate : "5. Sistema valida dados"
+UC_Validate --> UC_Save : "validação OK"
+UC_Save --> UC_MakeAvailable : "6-7. Fornecedor fica disponível"
+
+' Campos do formulário
+UC_Fill --> UC_Name : <<include>>
+UC_Fill --> UC_OptionalContact : <<include>>
+UC_Fill --> UC_OptionalEmail : <<include>>
+UC_Fill --> UC_OptionalPhone : <<include>>
+UC_Fill --> UC_OptionalAddress : <<include>>
+UC_Fill --> UC_DeliveryTime : <<include>>
+UC_Fill --> UC_MinOrder : <<include>>
+UC_Fill --> UC_Reliability : <<include>>
+
+' Operações
+UC_View --> UC_Create : <<extend>>
+UC_View --> UC_Edit : <<extend>>
+UC_View --> UC_Delete : <<extend>>
+UC_View --> UC_ViewDetails : <<extend>>
+
+' Validações
+UC_Validate --> UC_CheckRequired : <<include>>
+UC_Validate --> UC_CheckEmail : <<include>>
+UC_Validate --> UC_CheckDelivery : <<include>>
+UC_Validate --> UC_CheckValues : <<include>>
+
+' Fluxo secundário 1: Campos obrigatórios vazios
+UC_CheckRequired --> UC_RequiredEmpty : "se campos obrigatórios vazios"
+UC_RequiredEmpty --> UC_ShowError
+UC_ShowError --> UC_ReturnForm : "retorna ao passo 3"
+UC_ReturnForm --> UC_OpenForm
+
+note right of UC_Main
+  **REQUISITO FUNCIONAL RF-12**
+  **Gerenciar Fornecedores**
+  
+  ===== DESCRIÇÃO =====
+  O sistema permite cadastrar e gerenciar fornecedores
+  de produtos com informações de contato e confiabilidade.
+  
+  ===== ATOR =====
+  Usuário autenticado
+  
+  ===== PRIORIDADE =====
+  Importante
+  
+  ===== PRÉ-CONDIÇÕES =====
+  - Usuário autenticado
+  - Usuário informar dados do fornecedor:
+    * Nome (obrigatório)
+    * Pessoa de contato (opcional)
+    * Email (opcional)
+    * Telefone (opcional)
+    * Endereço (opcional)
+    * Prazo de entrega (obrigatório)
+    * Valor mínimo do pedido (obrigatório)
+    * Pontuação de confiabilidade (obrigatório)
+  
+  ===== PÓS-CONDIÇÕES =====
+  - Fornecedor é cadastrado com sucesso
+  - Fornecedor fica disponível para associação
+    com produtos
+  - Fornecedor aparece na lista de fornecedores
+end note
+
+note bottom of UC_CheckRequired
+  **FLUXO SECUNDÁRIO FS-1**
+  **Campos Obrigatórios Não Preenchidos**
+  
+  No fluxo principal passo 4, se campos
+  obrigatórios não forem preenchidos:
+  
+  1. Sistema exibe mensagem de erro:
+     "Por favor, preencha todos os campos
+     obrigatórios"
+  2. Sistema retorna ao passo 3 (formulário)
+  3. Campos obrigatórios são destacados
+  4. Usuário deve completar para prosseguir
+  
+  **Campos Obrigatórios:**
+  - Nome
+  - Prazo de entrega (1-30 dias)
+  - Valor mínimo do pedido
+  - Pontuação de confiabilidade (1.00-5.00)
+end note
+
+note left of UC_Name
+  **Nome do Fornecedor**
+  
+  Campo obrigatório:
+  - Identifica o fornecedor
+  - Deve ser único
+  - Exemplos: Distribuidora Central,
+    Atacado & Varejo
+  - Máximo: 100 caracteres
+  
+  Usado para identificação e relatórios
+end note
+
+note left of UC_OptionalContact
+  **Pessoa de Contato**
+  
+  Campo opcional:
+  - Nome da pessoa responsável
+  - Facilita comunicação
+  - Exemplos: João Silva, Maria Santos
+  - Máximo: 100 caracteres
+end note
+
+note left of UC_OptionalEmail
+  **Email**
+  
+  Campo opcional:
+  - Email do fornecedor
+  - Usado para comunicação
+  - Formato: email@exemplo.com
+  - Valida formato se informado
+end note
+
+note left of UC_OptionalPhone
+  **Telefone**
+  
+  Campo opcional:
+  - Telefone de contato
+  - Para comunicação direta
+  - Formato: (00) 00000-0000
+  - Máximo: 20 caracteres
+end note
+
+note left of UC_OptionalAddress
+  **Endereço**
+  
+  Campo opcional:
+  - Endereço completo
+  - Para entregas e comunicação
+  - Texto livre
+  - Não limitado
+end note
+
+note right of UC_DeliveryTime
+  **Prazo de Entrega**
+  
+  Campo obrigatório:
+  - Prazo em dias (1-30)
+  - Tempo para entrega de pedidos
+  - Usado em cálculos de planejamento
+  - Valida: 1 ≤ prazo ≤ 30 dias
+  
+  Padrão: 1 dia
+end note
+
+note right of UC_MinOrder
+  **Valor Mínimo do Pedido**
+  
+  Campo obrigatório:
+  - Valor mínimo para pedido
+  - Em reais
+  - Usado para validação de compras
+  - Formato: R$ X.XXX,XX
+  
+  Valida: > 0
+  
+  Padrão: R$ 100,00
+end note
+
+note right of UC_Reliability
+  **Pontuação de Confiabilidade**
+  
+  Campo obrigatório:
+  - Nota de 1.00 a 5.00
+  - Avaliação do fornecedor
+  - Usado para priorização
+  - Valida: 1.00 ≤ pontuação ≤ 5.00
+  
+  Padrão: 5.00
+  
+  Quanto maior, mais confiável
+end note
+
+note right of UC_MakeAvailable
+  **Disponibilização de Fornecedor**
+  
+  Após cadastro:
+  
+  - Fornecedor fica imediatamente disponível
+  - Aparece na lista de fornecedores
+  - Pode ser associado a produtos
+  - Pode ser usado em compras
+  - Pode ser editado ou excluído
+  - Histórico é mantido
+  
+  Permite planejamento de compras
+end note
+
+@enduml
+

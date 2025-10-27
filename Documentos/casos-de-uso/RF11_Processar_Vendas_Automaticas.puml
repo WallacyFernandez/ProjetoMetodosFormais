@@ -1,0 +1,242 @@
+@startuml RF11_Processar_Vendas_Automaticas
+!theme plain
+
+' Configuração de cores
+skinparam actor {
+    BackgroundColor #FFE4B5
+    BorderColor #CD853F
+}
+
+skinparam usecase {
+    BackgroundColor #87CEEB
+    BorderColor #4682B4
+}
+
+skinparam note {
+    BackgroundColor #FFFACD
+    BorderColor #DAA520
+}
+
+skinparam package {
+    BackgroundColor #F5F5F5
+    BorderColor #696969
+}
+
+left to right direction
+
+actor "Sistema (Automático)" as System
+
+package "Sistema de Gestão do Supermercado" {
+    
+    usecase (Main) "UC-11: Processar Vendas Automáticas" as UC_Main
+    
+    ' Fluxo principal
+    usecase (1) "Verificar Sessão Ativa" as UC_CheckSession
+    usecase (2) "Calcular Tempo Decorrido" as UC_CalculateTime
+    usecase (3) "Selecionar Produtos para Venda" as UC_SelectProducts
+    usecase (4) "Remover Produtos do Estoque" as UC_RemoveStock
+    usecase (5) "Adicionar Receita ao Saldo" as UC_AddRevenue
+    
+    ' Verificações
+    usecase (A) "Verificar Status da Sessão" as UC_CheckStatus
+    usecase (T) "Verificar Tempo do Jogo" as UC_CheckGameTime
+    
+    ' Seleção de produtos
+    usecase (SP) "Buscar Produtos Disponíveis" as UC_FindAvailable
+    usecase (SA) "Selecionar Aleatoriamente" as UC_RandomSelect
+    usecase (Q) "Determinar Quantidade por Venda" as UC_DetermineQuantity
+    
+    ' Processamento
+    usecase (P) "Processar Cada Venda" as UC_ProcessEach
+    usecase (H) "Registrar no Histórico" as UC_RegisterHistory
+    usecase (F) "Registrar Transações Financeiras" as UC_RegisterTransactions
+    
+    ' Validações
+    usecase (V1) "Verificar Produtos Disponíveis" as UC_CheckAvailable
+    usecase (V2) "Verificar Estoque por Produto" as UC_CheckStockEach
+    
+    ' Fluxo secundário
+    usecase (FS1) "Nenhum Produto Disponível" as UC_NoProducts
+    usecase (FS1a) "Não Processar Vendas" as UC_SkipSales
+    usecase (FS1b) "Aguardar Próximo Ciclo" as UC_WaitNext
+}
+
+' Fluxo principal
+System --> UC_CheckSession
+UC_CheckSession --> UC_Main
+UC_Main --> UC_CalculateTime : "1-2. Sistema verifica e calcula tempo"
+UC_CalculateTime --> UC_SelectProducts : "3. Sistema seleciona produtos"
+UC_SelectProducts --> UC_RemoveStock : "4. Sistema remove do estoque"
+UC_RemoveStock --> UC_AddRevenue : "5. Sistema adiciona receita"
+
+' Verificações
+UC_CheckSession --> UC_CheckStatus : <<include>>
+UC_CheckSession --> UC_CheckGameTime : <<include>>
+
+' Seleção de produtos
+UC_SelectProducts --> UC_FindAvailable : <<include>>
+UC_FindAvailable --> UC_RandomSelect : <<include>>
+UC_SelectProducts --> UC_DetermineQuantity : <<include>>
+
+' Processamento
+UC_RemoveStock --> UC_ProcessEach : <<include>>
+UC_ProcessEach --> UC_RemoveStock : "para cada produto"
+UC_RemoveStock --> UC_RegisterHistory : <<include>>
+UC_AddRevenue --> UC_RegisterTransactions : <<include>>
+
+' Validações
+UC_SelectProducts --> UC_CheckAvailable : <<include>>
+
+' Fluxo secundário 1: Nenhum produto disponível
+UC_CheckAvailable --> UC_NoProducts : "se nenhum produto"
+UC_NoProducts --> UC_SkipSales
+UC_SkipSales --> UC_WaitNext : "aguarda próximo ciclo"
+UC_WaitNext --> UC_CheckSession
+
+note right of UC_Main
+  **REQUISITO FUNCIONAL RF-11**
+  **Processar Vendas Automáticas**
+  
+  ===== DESCRIÇÃO =====
+  O sistema realiza vendas automáticas de produtos
+  durante o jogo, simulando operação real do
+  supermercado.
+  
+  ===== ATOR =====
+  Sistema (automático)
+  
+  ===== PRIORIDADE =====
+  Importante
+  
+  ===== PRÉ-CONDIÇÕES =====
+  - Sessão de jogo ativa
+  - Vendas automáticas habilitadas
+  - Produtos disponíveis em estoque
+  
+  ===== PÓS-CONDIÇÕES =====
+  - Produtos removidos do estoque
+  - Receita gerada e adicionada ao saldo
+  - Transações financeiras registradas
+  - Histórico de vendas atualizado
+  
+  ===== OBSERVAÇÕES =====
+  - Processo executado automaticamente
+  - Não requer intervenção do usuário
+  - Simula operação real do supermercado
+end note
+
+note bottom of UC_CheckAvailable
+  **FLUXO SECUNDÁRIO FS-1**
+  **Nenhum Produto Disponível**
+  
+  No fluxo principal passo 3, se não houver
+  produtos disponíveis em estoque:
+  
+  1. Sistema não processa vendas
+  2. Sistema aguarda próximo ciclo
+  3. Próximo ciclo pode ter produtos
+     disponíveis
+  
+  **Cenários:**
+  - Estoque de todos os produtos esgotado
+  - Todos os produtos com estoque zero
+  - Sem produtos ativos
+  
+  Sistema continua funcionando normalmente
+end note
+
+note left of UC_CheckStatus
+  **Verificar Status da Sessão**
+  
+  Validação:
+  - Sessão existe e está ativa
+  - Vendas automáticas estão habilitadas
+  - Usuário tem sessão válida
+  
+  Se inativa, processamento é pausado
+end note
+
+note left of UC_CheckGameTime
+  **Calcular Tempo Decorrido**
+  
+  Calcula:
+  - Dias que passaram desde última atualização
+  - Baseado em tempo real vs tempo do jogo
+  - Determina quantas vendas processar
+  
+  Exemplo: 3 dias passaram = 3 ciclos de vendas
+end note
+
+note left of UC_FindAvailable
+  **Buscar Produtos Disponíveis**
+  
+  Critérios:
+  - Produto ativo (is_active=True)
+  - Estoque > 0 (current_stock > 0)
+  - Categoria válida
+  
+  Retorna lista de produtos elegíveis
+end note
+
+note left of UC_RandomSelect
+  **Selecionar Aleatoriamente**
+  
+  Lógica aleatória:
+  - Seleciona produtos aleatórios da lista
+  - Quantidade baseada em meta diária
+  - Distribuição equilibrada
+  
+  Simula padrão de vendas real
+end note
+
+note left of UC_DetermineQuantity
+  **Determinar Quantidade por Venda**
+  
+  Cálculo:
+  - Quantidade varia por produto
+  - Baseada em padrões de venda
+  - Considera estoque disponível
+  - Nunca excede estoque
+  
+  Simula comportamento de clientes
+end note
+
+note right of UC_ProcessEach
+  **Processar Cada Venda**
+  
+  Para cada produto selecionado:
+  1. Verifica estoque disponível
+  2. Determina quantidade a vender
+  3. Calcula valor da venda
+  4. Remove do estoque
+  5. Adiciona receita ao saldo
+  6. Registra no histórico
+end note
+
+note right of UC_RegisterHistory
+  **Registro no Histórico**
+  
+  Registra todas as vendas:
+  - Cada venda individualmente
+  - Produto vendido
+  - Quantidade vendida
+  - Valor total
+  - Data da venda
+  
+  Mantém rastreabilidade completa
+end note
+
+note right of UC_RegisterTransactions
+  **Registrar Transações Financeiras**
+  
+  Cria transações de receita:
+  - Uma por cada venda processada
+  - Tipo: INCOME (Receita)
+  - Categoria: Vendas
+  - Valor da venda
+  
+  Usado em relatórios financeiros
+end note
+
+@enduml
+

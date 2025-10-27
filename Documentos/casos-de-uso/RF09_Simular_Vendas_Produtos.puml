@@ -1,0 +1,234 @@
+@startuml RF09_Simular_Vendas_Produtos
+!theme plain
+
+' Configuração de cores
+skinparam actor {
+    BackgroundColor #87CEEB
+    BorderColor #4682B4
+}
+
+skinparam usecase {
+    BackgroundColor #98FB98
+    BorderColor #228B22
+}
+
+skinparam note {
+    BackgroundColor #FFFACD
+    BorderColor #DAA520
+}
+
+skinparam package {
+    BackgroundColor #F5F5F5
+    BorderColor #696969
+}
+
+left to right direction
+
+actor "Usuário Autenticado" as User
+
+package "Sistema de Gestão do Supermercado" {
+    
+    usecase (Main) "UC-09: Simular Vendas de Produtos" as UC_Main
+    
+    ' Fluxo principal
+    usecase (1) "Acessar Simulação de Vendas" as UC_Access
+    usecase (2) "Selecionar Produto e Quantidade" as UC_Select
+    usecase (3) "Verificar Disponibilidade em Estoque" as UC_CheckStock
+    usecase (4) "Calcular Valor da Venda" as UC_Calculate
+    usecase (5) "Remover do Estoque e Adicionar Receita" as UC_Process
+    
+    ' Seleção de produto
+    usecase (P) "Selecionar Produto" as UC_Product
+    usecase (Q) "Informar Quantidade" as UC_Quantity
+    
+    ' Cálculos
+    usecase (UP) "Obter Preço Unitário Atual" as UC_UnitPrice
+    usecase (TV) "Calcular Valor Total" as UC_TotalValue
+    
+    ' Processamento
+    usecase (RM) "Remover Produto do Estoque" as UC_RemoveFromStock
+    usecase (AD) "Adicionar Receita ao Saldo" as UC_AddToBalance
+    usecase (RH) "Registrar no Histórico" as UC_RegisterHistory
+    usecase (RT) "Registrar Transação Financeira" as UC_RegisterTransaction
+    usecase (CF) "Exibir Confirmação" as UC_Confirm
+    
+    ' Validações
+    usecase (V1) "Validar Estoque Disponível" as UC_ValidateStock
+    usecase (V2) "Validar Quantidade Positiva" as UC_ValidateQuantity
+    
+    ' Fluxo secundário
+    usecase (FS1) "Estoque Insuficiente" as UC_InsufficientStock
+    usecase (FS1a) "Exibir Mensagem: Estoque Insuficiente" as UC_ShowMessage
+    usecase (FS1b) "Retornar à Seleção" as UC_ReturnToSelect
+}
+
+' Fluxo principal
+User --> UC_Access
+UC_Access --> UC_Main
+UC_Main --> UC_Select : "1-2. Usuário seleciona produto e quantidade"
+UC_Select --> UC_CheckStock : "3. Sistema verifica disponibilidade"
+UC_CheckStock --> UC_Calculate : "estoque disponível"
+UC_Calculate --> UC_Process : "4-5. Sistema calcula e processa"
+
+' Seleção
+UC_Select --> UC_Product : <<include>>
+UC_Select --> UC_Quantity : <<include>>
+
+' Cálculos
+UC_Calculate --> UC_UnitPrice : <<include>>
+UC_UnitPrice --> UC_TotalValue : <<include>>
+
+' Processamento
+UC_Process --> UC_RemoveFromStock : <<include>>
+UC_Process --> UC_AddToBalance : <<include>>
+UC_Process --> UC_RegisterHistory : <<include>>
+UC_Process --> UC_RegisterTransaction : <<include>>
+UC_Process --> UC_Confirm : <<include>>
+
+' Validações
+UC_CheckStock --> UC_ValidateStock : <<include>>
+UC_CheckStock --> UC_ValidateQuantity : <<include>>
+
+' Fluxo secundário 1: Estoque insuficiente
+UC_ValidateStock --> UC_InsufficientStock : "se estoque < quantidade"
+UC_InsufficientStock --> UC_ShowMessage
+UC_ShowMessage --> UC_ReturnToSelect : "retorna ao passo 2"
+UC_ReturnToSelect --> UC_Select
+
+note right of UC_Main
+  **REQUISITO FUNCIONAL RF-09**
+  **Simular Vendas de Produtos**
+  
+  ===== DESCRIÇÃO =====
+  O sistema permite simular vendas de produtos,
+  removendo do estoque e adicionando receita
+  ao saldo.
+  
+  ===== ATOR =====
+  Usuário autenticado
+  
+  ===== PRIORIDADE =====
+  Essencial
+  
+  ===== PRÉ-CONDIÇÕES =====
+  - Usuário autenticado
+  - Usuário selecionar produto e quantidade
+    para venda
+  
+  ===== PÓS-CONDIÇÕES =====
+  - Produto removido do estoque
+  - Receita adicionada ao saldo do usuário
+  - Transação financeira registrada
+  - Histórico de estoque atualizado
+end note
+
+note bottom of UC_ValidateStock
+  **FLUXO SECUNDÁRIO FS-1**
+  **Estoque Insuficiente**
+  
+  No fluxo principal passo 3, se o estoque do
+  produto for insuficiente para a quantidade
+  solicitada:
+  
+  1. Sistema exibe mensagem de erro:
+     "Estoque insuficiente. Estoque disponível:
+     X unidades"
+  2. Sistema retorna ao passo 2 (seleção)
+  3. Usuário deve ajustar quantidade ou
+     cancelar a venda
+  
+  **Validação:** Estoque atual >= Quantidade
+    solicitada
+end note
+
+note left of UC_UnitPrice
+  **Preço Unitário Atual**
+  
+  O sistema usa o preço atual do produto:
+  - Se estiver em promoção, usa preço promocional
+  - Caso contrário, usa preço de venda normal
+  - Atualiza preço médio de custo
+  - Considera margem de lucro
+  
+  Fórmula: Preço atual = Sale Price ou
+           Promotional Price
+end note
+
+note left of UC_TotalValue
+  **Valor Total da Venda**
+  
+  Calcula o valor total:
+  - Valor = Preço Unitário × Quantidade
+  - Valor é adicionado ao saldo do usuário
+  - Valor é registrado na transação financeira
+  
+  Formato: R$ X.XXX,XX
+end note
+
+note left of UC_RemoveFromStock
+  **Remover do Estoque**
+  
+  Operação de saída de estoque:
+  - Decrementa quantidade atual
+  - Atualiza status do produto
+  - Pode gerar alertas de estoque baixo
+  - Registra no histórico de estoque
+  
+  Novo estoque = Atual - Quantidade
+end note
+
+note left of UC_AddToBalance
+  **Adicionar Receita ao Saldo**
+  
+  Incrementa o saldo do usuário:
+  - Valor total da venda
+  - Aumenta saldo financeiro
+  - Registra operação no histórico de saldo
+  
+  Novo saldo = Saldo atual + Valor da venda
+end note
+
+note right of UC_RegisterHistory
+  **Registro no Histórico de Estoque**
+  
+  Registra a operação:
+  - Tipo: SALE (Venda)
+  - Produto vendido
+  - Quantidade vendida
+  - Estoque anterior
+  - Novo estoque
+  - Preço unitário
+  - Valor total
+  - Data da operação
+  
+  Permite rastreabilidade completa
+end note
+
+note right of UC_RegisterTransaction
+  **Registro na Transação Financeira**
+  
+  Cria transação de receita:
+  - Tipo: INCOME (Receita)
+  - Categoria: Vendas
+  - Valor total da venda
+  - Descrição: "Venda: Nome do Produto"
+  - Data do jogo atual
+  
+  Usado para relatórios financeiros
+end note
+
+note right of UC_Confirm
+  **Confirmação de Venda**
+  
+  Sistema exibe:
+  - Mensagem de sucesso
+  - Dados do produto vendido
+  - Quantidade vendida
+  - Valor total da venda
+  - Novo estoque do produto
+  
+  Usuário pode continuar vendendo
+end note
+
+@enduml
+
