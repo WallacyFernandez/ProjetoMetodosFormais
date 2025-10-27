@@ -1,0 +1,271 @@
+@startuml RF05_Gerenciar_Categorias_Transacoes
+!theme plain
+
+' Configuração de cores
+skinparam actor {
+    BackgroundColor #87CEEB
+    BorderColor #4682B4
+}
+
+skinparam usecase {
+    BackgroundColor #98FB98
+    BorderColor #228B22
+}
+
+skinparam note {
+    BackgroundColor #FFFACD
+    BorderColor #DAA520
+}
+
+skinparam package {
+    BackgroundColor #F5F5F5
+    BorderColor #696969
+}
+
+left to right direction
+
+actor "Usuário Autenticado" as User
+
+package "Sistema de Gestão Financeira" {
+    
+    usecase (Main) "UC-05: Gerenciar Categorias de Transações" as UC_Main
+    
+    ' Fluxo principal
+    usecase (1) "Acessar Página de Categorias" as UC_Access
+    usecase (2) "Visualizar Categorias" as UC_View
+    usecase (3) "Abrir Formulário de Nova Categoria" as UC_OpenForm
+    usecase (4) "Preencher Dados da Categoria" as UC_Fill
+    usecase (5) "Validar Dados da Categoria" as UC_Validate
+    usecase (6) "Salvar Categoria" as UC_Save
+    usecase (7) "Disponibilizar Categoria para Uso" as UC_MakeAvailable
+    usecase (8) "Exibir Confirmação de Sucesso" as UC_Confirm
+    
+    ' Tipos de categorias
+    usecase (D) "Categorias Padrão" as UC_Default
+    usecase (C) "Categorias Personalizadas" as UC_Custom
+    
+    ' Campos do formulário
+    usecase (N) "Informar Nome" as UC_Name
+    usecase (T) "Selecionar Tipo" as UC_Type
+    usecase (I) "Selecionar Ícone" as UC_Icon
+    usecase (CL) "Selecionar Cor" as UC_Color
+    usecase (DS) "Informar Descrição" as UC_Description
+    
+    ' Tipos de categoria
+    usecase (R) "Tipo: Receita" as UC_IncomeType
+    usecase (E) "Tipo: Despesa" as UC_ExpenseType
+    usecase (B) "Tipo: Ambos" as UC_BothType
+    
+    ' Operações disponíveis
+    usecase (CR) "Criar Categoria" as UC_Create
+    usecase (ED) "Editar Categoria" as UC_Edit
+    usecase (DL) "Excluir Categoria" as UC_Delete
+    
+    ' Fluxo secundário
+    usecase (FS1) "Nome Duplicado" as UC_DuplicateName
+    usecase (FS1a) "Exibir Erro: Nome Já Existente" as UC_ErrorDuplicate
+    usecase (FS1b) "Retornar ao Formulário" as UC_ReturnForm
+end note
+    
+    ' Validações específicas
+    usecase (V1) "Validar Nome Não Vazio" as UC_CheckName
+    usecase (V2) "Validar Nome Único para o Usuário" as UC_CheckUniqueName
+    usecase (V3) "Validar Tipo Selecionado" as UC_CheckType
+}
+
+' Fluxo principal
+User --> UC_Access
+UC_Access --> UC_Main
+UC_Main --> UC_View : "1. Sistema exibe categorias"
+UC_View --> UC_Default : <<extend>> "padrão"
+UC_View --> UC_Custom : <<extend>> "personalizadas"
+UC_View --> UC_OpenForm : "2. Usuário pode criar nova categoria"
+UC_OpenForm --> UC_Fill : "3. Usuário preenche formulário"
+UC_Fill --> UC_Validate : "4. Sistema valida dados"
+UC_Validate --> UC_Save : "validação OK"
+UC_Save --> UC_MakeAvailable : "5. Sistema disponibiliza categoria"
+UC_MakeAvailable --> UC_Confirm : "6. Sistema exibe confirmação"
+
+' Tipos de categorias visualizadas
+UC_View --> UC_Default : <<include>>
+UC_View --> UC_Custom : <<include>>
+
+' Campos do formulário
+UC_Fill --> UC_Name : <<include>>
+UC_Fill --> UC_Type : <<include>>
+UC_Fill --> UC_Icon : <<include>>
+UC_Fill --> UC_Color : <<include>>
+UC_Fill --> UC_Description : <<include>>
+
+' Tipos de categoria disponíveis
+UC_Type --> UC_IncomeType : "Receita"
+UC_Type --> UC_ExpenseType : "Despesa"
+UC_Type --> UC_BothType : "Ambos (Receita e Despesa)"
+
+' Operações
+UC_View --> UC_Create : <<extend>>
+UC_View --> UC_Edit : <<extend>>
+UC_View --> UC_Delete : <<extend>>
+
+' Validações
+UC_Validate --> UC_CheckName : <<include>>
+UC_Validate --> UC_CheckUniqueName : <<include>>
+UC_Validate --> UC_CheckType : <<include>>
+
+' Fluxo secundário 1: Nome duplicado
+UC_CheckUniqueName --> UC_DuplicateName : "se nome já existe"
+UC_DuplicateName --> UC_ErrorDuplicate
+UC_ErrorDuplicate --> UC_ReturnForm : "retorna ao passo 3"
+UC_ReturnForm --> UC_OpenForm
+
+note right of UC_Main
+  **REQUISITO FUNCIONAL RF-05**
+  **Gerenciar Categorias de Transações**
+  
+  ===== DESCRIÇÃO =====
+  O sistema permite criar, editar e gerenciar
+  categorias para organizar transações
+  financeiras.
+  
+  ===== ATOR =====
+  Usuário autenticado
+  
+  ===== PRIORIDADE =====
+  Importante
+  
+  ===== PRÉ-CONDIÇÕES =====
+  - Usuário autenticado
+  - Usuário informar dados da categoria:
+    * Nome
+    * Descrição (opcional)
+    * Ícone
+    * Cor
+    * Tipo (receita/despesa/ambos)
+  
+  ===== PÓS-CONDIÇÕES =====
+  - Categoria é criada/editada com sucesso
+  - Categoria fica disponível para uso
+    em transações
+  - Categoria aparece na lista de
+    categorias
+end note
+
+note bottom of UC_CheckUniqueName
+  **FLUXO SECUNDÁRIO FS-1**
+  **Nome Duplicado**
+  
+  No fluxo principal passo 4, se já existir
+  uma categoria com o mesmo nome para o
+  usuário:
+  
+  1. Sistema exibe mensagem de erro:
+     "Já existe uma categoria com este nome"
+  2. Sistema retorna ao passo 3 (formulário)
+  3. Usuário deve escolher um nome diferente
+     e tentar novamente
+  
+  **Validação:**
+  - Implementada via unique_together no
+    banco de dados: [name, user]
+  - Cada usuário pode ter apenas uma
+    categoria com determinado nome
+  - Categorias padrão do sistema não
+    afetam as personalizadas
+end note
+
+note left of UC_Default
+  **Categorias Padrão**
+  
+  - São fornecidas pelo sistema
+  - Sempre visíveis para todos os usuários
+  - Não podem ser editadas ou excluídas
+  - Exemplos: Alimentação, Transporte, Salário
+  - Característica: is_default = True
+end note
+
+note left of UC_Custom
+  **Categorias Personalizadas**
+  
+  - Criadas pelo próprio usuário
+  - Podem ser editadas e excluídas
+  - Não podem ter nomes duplicados
+  - Ficam disponíveis apenas para o usuário
+  - Característica: is_default = False
+end note
+
+note right of UC_IncomeType
+  **Tipo: Receita**
+  
+  Categoria para transações de receita:
+  - Salários
+  - Vendas
+  - Investimentos
+  - Renda extra
+  
+  Uso apenas em transações de entrada
+end note
+
+note right of UC_ExpenseType
+  **Tipo: Despesa**
+  
+  Categoria para transações de despesa:
+  - Alimentação
+  - Moradia
+  - Saúde
+  - Educação
+  
+  Uso apenas em transações de saída
+end note
+
+note right of UC_BothType
+  **Tipo: Ambos**
+  
+  Categoria flexível para receitas e
+  despesas:
+  
+  - Pode ser usada em ambos os tipos
+    de transação
+  - Útil para categorias genéricas
+  - Permite flexibilidade na organização
+  
+  Uso em qualquer tipo de transação
+end note
+
+note right of UC_Icon
+  **Seleção de Ícone**
+  
+  - Usuário pode escolher ícone visual
+    para identificar categoria
+  - Ícones melhoram a experiência visual
+  - Exemplos: 🏠 🍕 💊 📚 💰
+  - Campo opcional com valor padrão
+end note
+
+note right of UC_Color
+  **Seleção de Cor**
+  
+  - Usuário escolhe cor em hexadecimal
+    (#RRGGBB)
+  - Cor é usada na interface para
+    identificação visual
+  - Padrão: #3b82f6 (azul)
+  - Exemplos: #ef4444 (vermelho),
+    #10b981 (verde), #f59e0b (laranja)
+end note
+
+note right of UC_MakeAvailable
+  **Disponibilização de Categoria**
+  
+  Após criação/edição:
+  
+  - Categoria fica imediatamente disponível
+    para uso em transações
+  - Aparece na lista de categorias
+  - Pode ser selecionada em formulários
+    de transação
+  - Histórico é mantido para transações
+    anteriores
+end note
+
+@enduml
+

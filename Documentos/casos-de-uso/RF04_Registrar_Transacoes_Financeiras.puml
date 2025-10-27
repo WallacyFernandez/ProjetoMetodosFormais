@@ -1,0 +1,211 @@
+@startuml RF04_Registrar_Transacoes_Financeiras
+!theme plain
+
+' Configuração de cores
+skinparam actor {
+    BackgroundColor #87CEEB
+    BorderColor #4682B4
+}
+
+skinparam usecase {
+    BackgroundColor #98FB98
+    BorderColor #228B22
+}
+
+skinparam note {
+    BackgroundColor #FFFACD
+    BorderColor #DAA520
+}
+
+skinparam package {
+    BackgroundColor #F5F5F5
+    BorderColor #696969
+}
+
+left to right direction
+
+actor "Usuário Autenticado" as User
+
+package "Sistema de Gestão Financeira" {
+    
+    usecase (Main) "UC-04: Registrar Transações Financeiras" as UC_Main
+    
+    ' Fluxo principal
+    usecase (1) "Acessar Página de Transações" as UC_Access
+    usecase (2) "Abrir Formulário de Nova Transação" as UC_Form
+    usecase (3) "Preencher Dados da Transação" as UC_Fill
+    usecase (4) "Validar Dados da Transação" as UC_Validate
+    usecase (5) "Registrar Transação no Sistema" as UC_Save
+    usecase (6) "Atualizar Saldo do Usuário" as UC_UpdateBalance
+    usecase (7) "Registrar Operação no Histórico" as UC_RegisterHistory
+    usecase (8) "Exibir Confirmação de Sucesso" as UC_Confirm
+    
+    ' Tipos de transação
+    usecase (R) "Receita" as UC_Income
+    usecase (E) "Despesa" as UC_Expense
+    
+    ' Campos do formulário
+    usecase (V) "Informar Valor" as UC_Value
+    usecase (T) "Selecionar Tipo" as UC_Type
+    usecase (C) "Selecionar Categoria" as UC_Category
+    usecase (D) "Informar Descrição" as UC_Description
+    usecase (DT) "Informar Data" as UC_Date
+    
+    ' Fluxos secundários
+    usecase (FS1) "Valor Inválido (≤ 0)" as UC_InvalidAmount
+    usecase (FS1a) "Exibir Erro: Valor Inválido" as UC_ErrorAmount
+    usecase (FS1b) "Retornar ao Formulário" as UC_ReturnAmount
+    
+    usecase (FS2) "Categoria Não Selecionada" as UC_NoCategory
+    usecase (FS2a) "Exibir Erro: Selecione uma Categoria" as UC_ErrorCategory
+    usecase (FS2b) "Retornar ao Formulário" as UC_ReturnCategory
+    
+    ' Validações específicas
+    usecase (V1) "Validar Valor > 0" as UC_CheckAmount
+    usecase (V2) "Validar Categoria Selecionada" as UC_CheckCategory
+    usecase (V3) "Validar Descrição Não Vazia" as UC_CheckDescription
+}
+
+' Fluxo principal
+User --> UC_Access
+UC_Access --> UC_Main
+UC_Main --> UC_Form : "1. Usuário acessa página de transações"
+UC_Form --> UC_Fill : "2. Usuário preenche formulário"
+UC_Fill --> UC_Validate : "3. Sistema valida dados"
+UC_Validate --> UC_Save : "validação OK"
+UC_Save --> UC_UpdateBalance : <<include>>
+UC_UpdateBalance --> UC_RegisterHistory : <<include>>
+UC_RegisterHistory --> UC_Confirm : "4-5. Sistema atualiza saldo e registra histórico"
+
+' Tipos de transação
+UC_Fill --> UC_Type : <<extend>>
+UC_Type --> UC_Income : "Receita"
+UC_Type --> UC_Expense : "Despesa"
+
+' Campos do formulário
+UC_Fill --> UC_Value : <<include>>
+UC_Fill --> UC_Type : <<include>>
+UC_Fill --> UC_Category : <<include>>
+UC_Fill --> UC_Description : <<include>>
+UC_Fill --> UC_Date : <<include>>
+
+' Validações
+UC_Validate --> UC_CheckAmount : <<include>>
+UC_Validate --> UC_CheckCategory : <<include>>
+UC_Validate --> UC_CheckDescription : <<include>>
+
+' Fluxo secundário 1: Valor inválido
+UC_CheckAmount --> UC_InvalidAmount : "se valor ≤ 0"
+UC_InvalidAmount --> UC_ErrorAmount
+UC_ErrorAmount --> UC_ReturnAmount : "retorna ao passo 2"
+UC_ReturnAmount --> UC_Form
+
+' Fluxo secundário 2: Categoria não selecionada
+UC_CheckCategory --> UC_NoCategory : "se categoria vazia"
+UC_NoCategory --> UC_ErrorCategory
+UC_ErrorCategory --> UC_ReturnCategory : "retorna ao passo 2"
+UC_ReturnCategory --> UC_Form
+
+note right of UC_Main
+  **REQUISITO FUNCIONAL RF-04**
+  **Registrar Transações Financeiras**
+  
+  ===== DESCRIÇÃO =====
+  O sistema permite que o usuário registre
+  receitas e despesas, categorizando-as
+  e mantendo histórico completo.
+  
+  ===== ATOR =====
+  Usuário autenticado
+  
+  ===== PRIORIDADE =====
+  Essencial
+  
+  ===== PRÉ-CONDIÇÕES =====
+  - Usuário autenticado
+  - Usuário informar dados da transação:
+    * Valor
+    * Tipo (receita/despesa)
+    * Categoria
+    * Descrição
+    * Data
+  
+  ===== PÓS-CONDIÇÕES =====
+  - Transação é registrada com sucesso
+  - Saldo do usuário é atualizado automaticamente
+  - Operação é registrada no histórico de saldo
+  - Nova transação é exibida na lista
+end note
+
+note bottom of UC_CheckAmount
+  **FLUXO SECUNDÁRIO FS-1**
+  **Valor Inválido**
+  
+  No fluxo principal passo 3, se o valor
+  da transação for inválido (menor ou igual
+  a zero):
+  
+  1. Sistema exibe mensagem de erro:
+     "Por favor, insira um valor maior que zero"
+  2. Sistema retorna ao passo 2 (formulário)
+  3. Usuário pode corrigir o valor e
+     tentar novamente
+end note
+
+note bottom of UC_CheckCategory
+  **FLUXO SECUNDÁRIO FS-2**
+  **Categoria Não Selecionada**
+  
+  No fluxo principal passo 3, se a categoria
+  não for selecionada:
+  
+  1. Sistema exibe mensagem de erro:
+     "Por favor, selecione uma categoria"
+  2. Sistema retorna ao passo 2 (formulário)
+  3. Usuário deve selecionar uma categoria
+     e tentar novamente
+end note
+
+note left of UC_Income
+  **Tipo de Transação: Receita**
+  - Aumenta o saldo do usuário
+  - Representa ganhos financeiros
+  - Exemplos: salário, vendas, investimentos
+  - Saldo: novo = atual + valor
+end note
+
+note left of UC_Expense
+  **Tipo de Transação: Despesa**
+  - Diminui o saldo do usuário
+  - Representa gastos financeiros
+  - Exemplos: compras, contas, serviços
+  - Saldo: novo = atual - valor
+end note
+
+note left of UC_UpdateBalance
+  **Atualização Automática do Saldo**
+  
+  Ao salvar a transação:
+  
+  - Se receita: adiciona valor ao saldo
+  - Se despesa: subtrai valor do saldo
+  - Saldo é atualizado em tempo real
+  - Usuário vê o novo saldo imediatamente
+end note
+
+note right of UC_RegisterHistory
+  **Registro no Histórico**
+  
+  - Toda operação de saldo é registrada
+  - Histórico inclui:
+    * Tipo de operação (RECEITA/DESPESA)
+    * Valor da transação
+    * Saldo anterior
+    * Novo saldo
+    * Descrição
+    * Data e hora
+  - Usado para auditoria e rastreabilidade
+end note
+
+@enduml
+

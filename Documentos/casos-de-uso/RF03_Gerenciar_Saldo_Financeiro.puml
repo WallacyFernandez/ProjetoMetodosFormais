@@ -1,0 +1,154 @@
+@startuml RF03_Gerenciar_Saldo_Financeiro_Detalhado
+!theme plain
+
+' Configuração de cores
+skinparam actor {
+    BackgroundColor #87CEEB
+    BorderColor #4682B4
+}
+
+skinparam usecase {
+    BackgroundColor #98FB98
+    BorderColor #228B22
+}
+
+skinparam note {
+    BackgroundColor #FFFACD
+    BorderColor #DAA520
+}
+
+skinparam package {
+    BackgroundColor #F5F5F5
+    BorderColor #696969
+}
+
+left to right direction
+
+actor "Usuário Autenticado" as User
+
+package "Sistema de Gestão Financeira" {
+    
+    usecase (Main) "UC-03: Gerenciar Saldo Financeiro" as UC_Main
+    
+    ' Casos de uso principais
+    usecase (1) "Acessar Página de Saldo" as UC_Access
+    usecase (2) "Exibir Saldo Atual" as UC_Display
+    usecase (3) "Selecionar Operação" as UC_Select
+    usecase (4) "Executar Operação de Saldo" as UC_Execute
+    usecase (5) "Atualizar Saldo e Histórico" as UC_Update
+    usecase (6) "Exibir Novo Saldo Atualizado" as UC_Refresh
+    
+    ' Operações específicas
+    usecase (A) "Adicionar Valor" as UC_Add
+    usecase (B) "Subtrair Valor" as UC_Subtract
+    usecase (C) "Definir Saldo" as UC_Set
+    usecase (D) "Resetar Saldo" as UC_Reset
+    
+    ' Casos de uso secundários
+    usecase (FS1) "Validar Valor Informado" as UC_Validate
+    usecase (FS1a) "Exibir Mensagem de Erro" as UC_Error
+    usecase (FS1b) "Retornar para Seleção de Operação" as UC_Return
+}
+
+User --> UC_Access
+UC_Access --> UC_Main
+
+UC_Main --> UC_Display : "1. Sistema exibe saldo atual"
+UC_Main --> UC_Select : "2. Usuário seleciona operação"
+UC_Main --> UC_Execute : "3. Usuário executa operação"
+UC_Main --> UC_Update : "4. Sistema atualiza saldo"
+UC_Main --> UC_Refresh : "5. Sistema exibe novo saldo"
+
+UC_Select --> UC_Add : <<extend>>
+UC_Select --> UC_Subtract : <<extend>>
+UC_Select --> UC_Set : <<extend>>
+UC_Select --> UC_Reset : <<extend>>
+
+UC_Execute --> UC_Add
+UC_Execute --> UC_Subtract
+UC_Execute --> UC_Set
+UC_Execute --> UC_Reset
+
+UC_Execute ..> UC_Validate : <<include>> "valida valor"
+UC_Validate ..> UC_Error : "se valor inválido"
+UC_Error ..> UC_Return : "retorna para passo 3"
+UC_Return --> UC_Select
+
+UC_Update ..> UC_Refresh : <<include>>
+
+note right of UC_Main
+  **REQUISITO FUNCIONAL RF-03**
+  **Gerenciar Saldo Financeiro**
+  
+  ===== DESCRIÇÃO =====
+  O sistema permite que o usuário visualize,
+  adicione, subtraia e defina valores para
+  seu saldo financeiro atual.
+  
+  ===== ATOR =====
+  Usuário autenticado
+  
+  ===== PRIORIDADE =====
+  Essencial
+  
+  ===== PRÉ-CONDIÇÕES =====
+  - Usuário autenticado
+  - Acesso às funcionalidades de saldo
+  
+  ===== PÓS-CONDIÇÕES =====
+  - Saldo do usuário atualizado conforme
+    operação realizada
+  - Operação registrada no histórico
+  - Novo saldo exibido na interface
+end note
+
+note bottom of UC_Validate
+  **FLUXO SECUNDÁRIO FS-1**
+  **Valor Inválido**
+  
+  No fluxo principal passo 4, se o valor
+  informado for inválido (negativo ou
+  não numérico):
+  
+  1. Sistema exibe mensagem de erro
+  2. Sistema retorna ao passo 3 (seleção
+     de operação)
+  3. Usuário pode corrigir o valor e
+     tentar novamente
+end note
+
+note left of UC_Add
+  **Operação de Adição**
+  - Permite adicionar valor ao saldo atual
+  - Valor deve ser positivo e numérico
+  - Atualiza saldo: novo = atual + valor
+  - Registra no histórico
+end note
+
+note left of UC_Subtract
+  **Operação de Subtração**
+  - Permite subtrair valor do saldo atual
+  - Valor deve ser positivo e numérico
+  - Verifica saldo suficiente
+  - Atualiza saldo: novo = atual - valor
+  - Registra no histórico
+end note
+
+note left of UC_Set
+  **Operação de Definição**
+  - Permite definir novo valor para o saldo
+  - Valor pode ser qualquer valor numérico
+  - Atualiza saldo: novo = valor definido
+  - Registra no histórico
+end note
+
+note left of UC_Reset
+  **Operação de Reset**
+  - Reseta saldo para zero
+  - Não requer entrada de valor
+  - Atualiza saldo: novo = 0
+  - Registra no histórico
+end note
+
+@enduml
+
