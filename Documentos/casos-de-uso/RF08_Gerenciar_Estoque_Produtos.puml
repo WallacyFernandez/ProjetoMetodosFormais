@@ -1,0 +1,316 @@
+@startuml RF08_Gerenciar_Estoque_Produtos
+!theme plain
+
+' Configuração de cores
+skinparam actor {
+    BackgroundColor #87CEEB
+    BorderColor #4682B4
+}
+
+skinparam usecase {
+    BackgroundColor #98FB98
+    BorderColor #228B22
+}
+
+skinparam note {
+    BackgroundColor #FFFACD
+    BorderColor #DAA520
+}
+
+skinparam package {
+    BackgroundColor #F5F5F5
+    BorderColor #696969
+}
+
+left to right direction
+
+actor "Usuário Autenticado" as User
+
+package "Sistema de Gestão do Supermercado" {
+    
+    usecase (Main) "UC-08: Gerenciar Estoque de Produtos" as UC_Main
+    
+    ' Fluxo principal
+    usecase (1) "Acessar Gestão de Estoque" as UC_Access
+    usecase (2) "Visualizar Produtos e Níveis de Estoque" as UC_View
+    usecase (3) "Selecionar Operação de Estoque" as UC_Select
+    usecase (4) "Executar Operação de Estoque" as UC_Execute
+    usecase (5) "Atualizar Estoque e Histórico" as UC_Update
+    usecase (6) "Verificar Alertas de Estoque Baixo" as UC_CheckAlerts
+    
+    ' Operações de estoque
+    usecase (AD) "Adicionar ao Estoque" as UC_Add
+    usecase (RM) "Remover do Estoque" as UC_Remove
+    usecase (AJ) "Ajustar Estoque" as UC_Adjust
+    
+    ' Tipos de operação
+    usecase (EN) "Entrada de Produtos" as UC_Entry
+    usecase (SA) "Saída de Produtos" as UC_Exit
+    usecase (CO) "Correção de Estoque" as UC_Correction
+    
+    ' Campos necessários
+    usecase (PR) "Selecionar Produto" as UC_Product
+    usecase (QT) "Informar Quantidade" as UC_Quantity
+    usecase (PRC) "Informar Preço (opcional)" as UC_Price
+    usecase (DESC) "Informar Descrição (opcional)" as UC_Description
+    
+    ' Validações
+    usecase (V1) "Validar Quantidade" as UC_CheckQuantity
+    usecase (V2) "Validar Estoque Disponível" as UC_CheckAvailable
+    
+    ' Fluxos secundários
+    usecase (FS1) "Quantidade > Estoque Disponível" as UC_InsufficientStock
+    usecase (FS1a) "Exibir Mensagem: Estoque Insuficiente" as UC_ShowInsufficient
+    usecase (FS1b) "Retornar à Seleção de Operação" as UC_ReturnToSelect
+    
+    usecase (FS2) "Quantidade Inválida" as UC_InvalidQuantity
+    usecase (FS2a) "Exibir Mensagem de Erro" as UC_ShowError
+    usecase (FS2b) "Retornar à Seleção de Operação" as UC_ReturnToOperation
+    
+    ' Alertas de estoque
+    usecase (AL) "Alertas de Estoque" as UC_Alerts
+    usecase (BA) "Estoque Baixo" as UC_LowStock
+    usecase (FO) "Fora de Estoque" as UC_OutOfStock
+end note
+    
+    ' Registro no histórico
+    usecase (H) "Registrar no Histórico" as UC_RegisterHistory
+}
+
+' Fluxo principal
+User --> UC_Access
+UC_Access --> UC_Main
+UC_Main --> UC_View : "1. Sistema exibe produtos e níveis"
+UC_View --> UC_Select : "2. Usuário pode realizar operações"
+UC_Select --> UC_Execute : "3. Usuário executa operação"
+UC_Execute --> UC_Update : "4. Sistema atualiza estoque"
+UC_Update --> UC_RegisterHistory : <<include>> "registra no histórico"
+UC_RegisterHistory --> UC_CheckAlerts : "5. Sistema verifica alertas"
+UC_CheckAlerts --> UC_Alerts : "exibe alertas se necessário"
+
+' Operações de estoque
+UC_Select --> UC_Add : <<extend>>
+UC_Select --> UC_Remove : <<extend>>
+UC_Select --> UC_Adjust : <<extend>>
+
+UC_Add --> UC_Entry : <<include>>
+UC_Remove --> UC_Exit : <<include>>
+UC_Adjust --> UC_Correction : <<include>>
+
+' Campos necessários
+UC_Execute --> UC_Product : <<include>>
+UC_Execute --> UC_Quantity : <<include>>
+UC_Execute --> UC_Price : <<include>>
+UC_Execute --> UC_Description : <<include>>
+
+' Validações
+UC_Execute --> UC_CheckQuantity : <<include>>
+UC_Execute --> UC_CheckAvailable : <<include>>
+
+' Fluxo secundário 1: Estoque insuficiente
+UC_CheckAvailable --> UC_InsufficientStock : "se quantidade > estoque"
+UC_InsufficientStock --> UC_ShowInsufficient
+UC_ShowInsufficient --> UC_ReturnToSelect : "retorna ao passo 3"
+UC_ReturnToSelect --> UC_Select
+
+' Fluxo secundário 2: Quantidade inválida
+UC_CheckQuantity --> UC_InvalidQuantity : "se quantidade inválida"
+UC_InvalidQuantity --> UC_ShowError
+UC_ShowError --> UC_ReturnToOperation : "retorna ao passo 3"
+UC_ReturnToOperation --> UC_Select
+
+' Alertas de estoque
+UC_CheckAlerts --> UC_LowStock : "se estoque <= mínimo"
+UC_CheckAlerts --> UC_OutOfStock : "se estoque = 0"
+
+note right of UC_Main
+  **REQUISITO FUNCIONAL RF-08**
+  **Gerenciar Estoque de Produtos**
+  
+  ===== DESCRIÇÃO =====
+  O sistema permite controlar entrada, saída
+  e níveis de estoque dos produtos, com
+  alertas de estoque baixo.
+  
+  ===== ATOR =====
+  Usuário autenticado
+  
+  ===== PRIORIDADE =====
+  Essencial
+  
+  ===== PRÉ-CONDIÇÕES =====
+  - Usuário autenticado
+  - Usuário realizar operações de estoque:
+    * Selecionar produto
+    * Informar quantidade
+    * (Opcional) Informar preço e descrição
+  
+  ===== PÓS-CONDIÇÕES =====
+  - Estoque é atualizado
+  - Histórico é registrado
+  - Alertas são verificados e exibidos
+  - Status do produto é atualizado
+end note
+
+note bottom of UC_CheckAvailable
+  **FLUXO SECUNDÁRIO FS-1**
+  **Estoque Insuficiente**
+  
+  No fluxo principal passo 4, se a quantidade
+  a remover for maior que o estoque disponível:
+  
+  1. Sistema exibe mensagem de erro:
+     "Estoque insuficiente. Estoque atual:
+     X unidades"
+  2. Sistema retorna ao passo 3 (seleção)
+  3. Usuário deve ajustar a quantidade ou
+     cancelar a operação
+  
+  **Validação:** Estoque atual >= Quantidade
+    solicitada
+end note
+
+note bottom of UC_CheckQuantity
+  **FLUXO SECUNDÁRIO FS-2**
+  **Quantidade Inválida**
+  
+  No fluxo principal passo 4, se a quantidade
+  informada for inválida (negativa ou não
+  numérica):
+  
+  1. Sistema exibe mensagem de erro:
+     "Por favor, informe uma quantidade válida
+     (maior que zero)"
+  2. Sistema retorna ao passo 3 (seleção)
+  3. Usuário deve corrigir a quantidade
+  
+  **Validação:** Quantidade > 0 e numérica
+end note
+
+note left of UC_Add
+  **Operação: Adicionar ao Estoque**
+  
+  Incrementa o estoque:
+  - Usado para entrada de produtos
+  - Compra de fornecedores
+  - Recebimento de mercadorias
+  
+  Novo estoque = Atual + Quantidade
+  
+  Registra no histórico como entrada
+end note
+
+note left of UC_Remove
+  **Operação: Remover do Estoque**
+  
+  Decrementa o estoque:
+  - Usado para saída de produtos
+  - Vendas ao consumidor
+  - Danos e perdas
+  
+  Novo estoque = Atual - Quantidade
+  
+  Requer estoque suficiente
+  
+  Registra no histórico como saída
+end note
+
+note left of UC_Adjust
+  **Operação: Ajustar Estoque**
+  
+  Define novo valor de estoque:
+  - Usado para correções
+  - Inventário físico
+  - Ajustes contábeis
+  
+  Novo estoque = Valor informado
+  
+  Pode ser positivo ou negativo
+  
+  Registra no histórico como ajuste
+end note
+
+note right of UC_LowStock
+  **Alerta: Estoque Baixo**
+  
+  Quando estoque <= estoque mínimo:
+  - Sistema exibe alerta
+  - Produto marcado como alerta
+  - Recomendação de compra
+  - Ícone de aviso na interface
+  
+  Alerta: Estoque abaixo do mínimo
+end note
+
+note right of UC_OutOfStock
+  **Alerta: Fora de Estoque**
+  
+  Quando estoque = 0:
+  - Sistema exibe alerta crítico
+  - Produto marcado como indisponível
+  - Bloqueio em vendas (opcional)
+  - Ícone de erro na interface
+  
+  Alerta: Produto fora de estoque
+end note
+
+note right of UC_RegisterHistory
+  **Registro no Histórico**
+  
+  Toda operação é registrada:
+  
+  - Tipo de operação (ENTRY/EXIT/ADJUST)
+  - Produto afetado
+  - Quantidade movimentada
+  - Estoque anterior
+  - Novo estoque
+  - Preço unitário (se aplicável)
+  - Descrição (opcional)
+  - Data e hora
+  - Usuário responsável
+  
+  Permite rastreabilidade completa
+end note
+
+note left of UC_Product
+  **Seleção de Produto**
+  
+  Campo obrigatório:
+  - Usuário seleciona produto da lista
+  - Exibe informações do produto
+  - Mostra estoque atual
+  - Mostra alertas se houver
+end note
+
+note left of UC_Quantity
+  **Quantidade**
+  
+  Campo obrigatório:
+  - Quantidade a adicionar/remover/ajustar
+  - Deve ser > 0
+  - Deve ser numérica
+  - Para remoção: não pode exceder estoque
+end note
+
+note right of UC_Price
+  **Preço Unitário (Opcional)**
+  
+  Campo opcional:
+  - Preço por unidade
+  - Usado para cálculos de custo
+  - Atualiza preço médio do estoque
+  - Apenas para operações de entrada
+end note
+
+note right of UC_Description
+  **Descrição (Opcional)**
+  
+  Campo opcional:
+  - Motivo da operação
+  - Nota explicativa
+  - Referência de documento
+  - Útil para auditoria
+end note
+
+@enduml
+

@@ -1,0 +1,240 @@
+@startuml RF06_Gerar_Relatorios_Financeiros
+!theme plain
+
+' Configuração de cores
+skinparam actor {
+    BackgroundColor #87CEEB
+    BorderColor #4682B4
+}
+
+skinparam usecase {
+    BackgroundColor #98FB98
+    BorderColor #228B22
+}
+
+skinparam note {
+    BackgroundColor #FFFACD
+    BorderColor #DAA520
+}
+
+skinparam package {
+    BackgroundColor #F5F5F5
+    BorderColor #696969
+}
+
+left to right direction
+
+actor "Usuário Autenticado" as User
+
+package "Sistema de Gestão Financeira" {
+    
+    usecase (Main) "UC-06: Gerar Relatórios Financeiros" as UC_Main
+    
+    ' Fluxo principal
+    usecase (1) "Acessar Página de Relatórios" as UC_Access
+    usecase (2) "Selecionar Período" as UC_SelectPeriod
+    usecase (3) "Calcular Resumo Financeiro" as UC_Calculate
+    usecase (4) "Exibir Relatório com Gráficos" as UC_DisplayReport
+    usecase (5) "Visualizar Detalhes das Transações" as UC_ViewDetails
+    
+    ' Componentes do relatório
+    usecase (S) "Resumo Mensal" as UC_MonthlySummary
+    usecase (C) "Resumo por Categoria" as UC_CategorySummary
+    usecase (G) "Gráficos e Estatísticas" as UC_Charts
+    usecase (D) "Detalhamento de Transações" as UC_Details
+    
+    ' Tipos de resumo
+    usecase (T) "Total de Receitas" as UC_TotalIncome
+    usecase (E) "Total de Despesas" as UC_TotalExpenses
+    usecase (B) "Saldo do Período" as UC_Balance
+    usecase (Q) "Quantidade de Transações" as UC_Count
+    
+    ' Cálculos por categoria
+    usecase (CT) "Total por Categoria" as UC_TotalPerCategory
+    usecase (CP) "Porcentagem por Categoria" as UC_PercentagePerCategory
+    usecase (CC) "Contagem por Categoria" as UC_CountPerCategory
+    
+    ' Fluxo secundário
+    usecase (FS1) "Nenhuma Transação Encontrada" as UC_NoTransactions
+    usecase (FS1a) "Exibir Mensagem Informativa" as UC_MessageEmpty
+    usecase (FS1b) "Exibir Relatório Vazio" as UC_EmptyReport
+end note
+    
+    ' Validações
+    usecase (V1) "Validar Período Selecionado" as UC_ValidatePeriod
+    usecase (V2) "Verificar Existência de Transações" as UC_CheckTransactions
+}
+
+' Fluxo principal
+User --> UC_Access
+UC_Access --> UC_Main
+UC_Main --> UC_SelectPeriod : "1. Usuário seleciona período"
+UC_SelectPeriod --> UC_Calculate : "2. Sistema calcula resumo"
+UC_Calculate --> UC_DisplayReport : "3. Sistema exibe relatório"
+UC_DisplayReport --> UC_ViewDetails : "4. Usuário pode visualizar detalhes"
+
+' Componentes do relatório
+UC_Calculate --> UC_MonthlySummary : <<include>>
+UC_Calculate --> UC_CategorySummary : <<include>>
+
+UC_MonthlySummary --> UC_TotalIncome : <<include>>
+UC_MonthlySummary --> UC_TotalExpenses : <<include>>
+UC_MonthlySummary --> UC_Balance : <<include>>
+UC_MonthlySummary --> UC_Count : <<include>>
+
+UC_CategorySummary --> UC_TotalPerCategory : <<include>>
+UC_CategorySummary --> UC_PercentagePerCategory : <<include>>
+UC_CategorySummary --> UC_CountPerCategory : <<include>>
+
+UC_DisplayReport --> UC_Charts : <<include>>
+UC_DisplayReport --> UC_Details : <<include>>
+
+' Validações
+UC_Calculate --> UC_ValidatePeriod : <<include>>
+UC_Calculate --> UC_CheckTransactions : <<include>>
+
+' Fluxo secundário 1: Sem transações
+UC_CheckTransactions --> UC_NoTransactions : "se nenhuma transação"
+UC_NoTransactions --> UC_MessageEmpty
+UC_MessageEmpty --> UC_EmptyReport : "retorna relatório vazio"
+UC_EmptyReport --> UC_DisplayReport
+
+note right of UC_Main
+  **REQUISITO FUNCIONAL RF-06**
+  **Gerar Relatórios Financeiros**
+  
+  ===== DESCRIÇÃO =====
+  O sistema gera relatórios mensais com resumo
+  de receitas, despesas e análise por categoria.
+  
+  ===== ATOR =====
+  Usuário autenticado
+  
+  ===== PRIORIDADE =====
+  Importante
+  
+  ===== PRÉ-CONDIÇÕES =====
+  - Usuário autenticado
+  - Usuário selecionar período para relatório
+    (ano/mês)
+  
+  ===== PÓS-CONDIÇÕES =====
+  - Relatório é exibido com dados consolidados
+    do período
+  - Gráficos e estatísticas são exibidos
+  - Usuário pode visualizar detalhes das
+    transações
+end note
+
+note bottom of UC_CheckTransactions
+  **FLUXO SECUNDÁRIO FS-1**
+  **Nenhuma Transação Encontrada**
+  
+  No fluxo principal passo 3, se não houver
+  transações para o período selecionado:
+  
+  1. Sistema exibe mensagem informativa:
+     "Nenhuma transação encontrada para este
+     período"
+  2. Sistema exibe relatório vazio
+  3. Relatório mostra zeros para todos os
+     valores
+  4. Usuário pode selecionar outro período
+end note
+
+note left of UC_MonthlySummary
+  **Resumo Mensal**
+  
+  Calcula e exibe:
+  - Total de receitas do mês
+  - Total de despesas do mês
+  - Saldo do mês (receitas - despesas)
+  - Quantidade de transações
+  
+  Valores são formatados em R$
+end note
+
+note left of UC_CategorySummary
+  **Resumo por Categoria**
+  
+  Calcula e exibe:
+  - Total por categoria
+  - Porcentagem de cada categoria
+  - Quantidade de transações por categoria
+  - Gráfico de distribuição
+  
+  Permite análise detalhada dos gastos
+end note
+
+note right of UC_TotalIncome
+  **Total de Receitas**
+  
+  Soma de todas as transações de entrada:
+  - Salários
+  - Vendas
+  - Investimentos
+  - Outras receitas
+  
+  Formato: R$ X.XXX,XX
+end note
+
+note right of UC_TotalExpenses
+  **Total de Despesas**
+  
+  Soma de todas as transações de saída:
+  - Compras
+  - Serviços
+  - Contas
+  - Outras despesas
+  
+  Formato: R$ X.XXX,XX
+end note
+
+note right of UC_Balance
+  **Saldo do Período**
+  
+  Diferença entre receitas e despesas:
+  - Saldo = Total de Receitas - Total de Despesas
+  - Pode ser positivo ou negativo
+  - Indica lucro ou prejuízo no período
+  
+  Formato: R$ X.XXX,XX
+end note
+
+note right of UC_Count
+  **Quantidade de Transações**
+  
+  Número total de transações no período:
+  - Inclui receitas e despesas
+  - Usado para análise de frequência
+  - Pode ser filtrado por categoria
+  
+  Formato: X transações
+end note
+
+note right of UC_Charts
+  **Gráficos e Visualizações**
+  
+  Exibe visualmente:
+  - Gráfico de receitas vs despesas
+  - Distribuição por categoria
+  - Evolução temporal
+  - Comparações entre períodos
+  
+  Melhora compreensão dos dados
+end note
+
+note right of UC_Details
+  **Detalhamento de Transações**
+  
+  Permite visualizar:
+  - Lista completa de transações
+  - Detalhes de cada transação
+  - Filtros adicionais
+  - Exportação de dados
+  
+  Útil para auditoria e análise
+end note
+
+@enduml
+

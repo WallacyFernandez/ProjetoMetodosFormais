@@ -1,0 +1,258 @@
+@startuml RF07_Gerenciar_Produtos_Supermercado
+!theme plain
+
+' Configuração de cores
+skinparam actor {
+    BackgroundColor #87CEEB
+    BorderColor #4682B4
+}
+
+skinparam usecase {
+    BackgroundColor #98FB98
+    BorderColor #228B22
+}
+
+skinparam note {
+    BackgroundColor #FFFACD
+    BorderColor #DAA520
+}
+
+skinparam package {
+    BackgroundColor #F5F5F5
+    BorderColor #696969
+}
+
+left to right direction
+
+actor "Usuário Autenticado" as User
+
+package "Sistema de Gestão do Supermercado" {
+    
+    usecase (Main) "UC-07: Gerenciar Produtos do Supermercado" as UC_Main
+    
+    ' Fluxo principal
+    usecase (1) "Acessar Gestão de Produtos" as UC_Access
+    usecase (2) "Visualizar Produtos Existentes" as UC_View
+    usecase (3) "Abrir Formulário de Cadastro" as UC_OpenForm
+    usecase (4) "Preencher Dados do Produto" as UC_Fill
+    usecase (5) "Validar Dados do Produto" as UC_Validate
+    usecase (6) "Salvar Produto" as UC_Save
+    usecase (7) "Disponibilizar Produto" as UC_MakeAvailable
+    
+    ' Campos do formulário
+    usecase (N) "Informar Nome" as UC_Name
+    usecase (C) "Selecionar Categoria" as UC_Category
+    usecase (F) "Selecionar Fornecedor" as UC_Supplier
+    usecase (PP) "Informar Preço de Compra" as UC_PurchasePrice
+    usecase (PS) "Informar Preço de Venda" as UC_SalePrice
+    usecase (EST) "Informar Estoque Inicial" as UC_Stock
+    
+    ' Operações disponíveis
+    usecase (CR) "Criar Produto" as UC_Create
+    usecase (ED) "Editar Produto" as UC_Edit
+    usecase (DL) "Excluir Produto" as UC_Delete
+    
+    ' Validações
+    usecase (V1) "Validar Campos Obrigatórios" as UC_CheckRequired
+    usecase (V2) "Validar Preços" as UC_CheckPrices
+    
+    ' Fluxos secundários
+    usecase (FS1) "Preço Venda < Preço Compra" as UC_PriceAlert
+    usecase (FS1a) "Exibir Alerta Informativo" as UC_ShowAlert
+    usecase (FS1b) "Permitir Cadastro" as UC_AllowRegister
+    
+    usecase (FS2) "Campos Obrigatórios Vazios" as UC_RequiredEmpty
+    usecase (FS2a) "Exibir Mensagem de Erro" as UC_ShowError
+    usecase (FS2b) "Retornar ao Formulário" as UC_ReturnForm
+}
+
+' Fluxo principal
+User --> UC_Access
+UC_Access --> UC_Main
+UC_Main --> UC_View : "1. Sistema exibe produtos"
+UC_View --> UC_OpenForm : "2. Usuário pode cadastrar novo produto"
+UC_OpenForm --> UC_Fill : "3. Usuário preenche formulário"
+UC_Fill --> UC_Validate : "4. Sistema valida dados"
+UC_Validate --> UC_Save : "validação OK"
+UC_Save --> UC_MakeAvailable : "5. Produto fica disponível"
+
+' Campos do formulário
+UC_Fill --> UC_Name : <<include>>
+UC_Fill --> UC_Category : <<include>>
+UC_Fill --> UC_Supplier : <<include>>
+UC_Fill --> UC_PurchasePrice : <<include>>
+UC_Fill --> UC_SalePrice : <<include>>
+UC_Fill --> UC_Stock : <<include>>
+
+' Operações
+UC_View --> UC_Create : <<extend>>
+UC_View --> UC_Edit : <<extend>>
+UC_View --> UC_Delete : <<extend>>
+
+' Validações
+UC_Validate --> UC_CheckRequired : <<include>>
+UC_Validate --> UC_CheckPrices : <<include>>
+
+' Fluxo secundário 1: Preço venda < preço compra
+UC_CheckPrices --> UC_PriceAlert : "se preço venda < preço compra"
+UC_PriceAlert --> UC_ShowAlert
+UC_ShowAlert --> UC_AllowRegister : "alerta informativo, permite cadastro"
+UC_AllowRegister --> UC_Save
+
+' Fluxo secundário 2: Campos obrigatórios vazios
+UC_CheckRequired --> UC_RequiredEmpty : "se campos obrigatórios vazios"
+UC_RequiredEmpty --> UC_ShowError
+UC_ShowError --> UC_ReturnForm : "retorna ao passo 3"
+UC_ReturnForm --> UC_OpenForm
+
+note right of UC_Main
+  **REQUISITO FUNCIONAL RF-07**
+  **Gerenciar Produtos do Supermercado**
+  
+  ===== DESCRIÇÃO =====
+  O sistema permite cadastrar, editar e gerenciar
+  produtos com informações de estoque, preços
+  e categorias.
+  
+  ===== ATOR =====
+  Usuário autenticado
+  
+  ===== PRIORIDADE =====
+  Essencial
+  
+  ===== PRÉ-CONDIÇÕES =====
+  - Usuário autenticado
+  - Usuário informar dados do produto:
+    * Nome
+    * Categoria
+    * Fornecedor
+    * Preços (compra e venda)
+    * Estoque inicial
+  
+  ===== PÓS-CONDIÇÕES =====
+  - Produto é cadastrado com sucesso
+  - Produto fica disponível para gestão
+  - Produto aparece na lista de produtos
+  - Produto pode ser usado em operações de
+    estoque e vendas
+end note
+
+note bottom of UC_CheckPrices
+  **FLUXO SECUNDÁRIO FS-1**
+  **Preço de Venda < Preço de Compra**
+  
+  No fluxo principal passo 4, se o preço de
+  venda for menor que o preço de compra:
+  
+  1. Sistema exibe alerta informativo:
+     "Atenção: Preço de venda menor que preço
+     de compra. Isso resultará em prejuízo."
+  2. Sistema permite o cadastro mesmo assim
+  3. Usuário pode confirmar ou cancelar
+  4. Alerta serve como aviso, não como bloqueio
+  
+  **Motivo:** Permite situações especiais como
+  promoções, liquidações, etc.
+end note
+
+note bottom of UC_CheckRequired
+  **FLUXO SECUNDÁRIO FS-2**
+  **Campos Obrigatórios Não Preenchidos**
+  
+  No fluxo principal passo 4, se campos
+  obrigatórios não forem preenchidos:
+  
+  1. Sistema exibe mensagem de erro:
+     "Por favor, preencha todos os campos
+     obrigatórios"
+  2. Sistema retorna ao passo 3 (formulário)
+  3. Campos obrigatórios são destacados
+  4. Usuário deve completar para prosseguir
+  
+  **Campos Obrigatórios:**
+  - Nome
+  - Categoria
+  - Fornecedor
+  - Preço de compra
+  - Preço de venda
+end note
+
+note left of UC_Name
+  **Nome do Produto**
+  
+  Campo obrigatório:
+  - Identifica o produto
+  - Deve ser único por categoria
+  - Exemplos: Leite Integral, Arroz 5kg
+  - Máximo: 100 caracteres
+end note
+
+note left of UC_Category
+  **Categoria**
+  
+  Campo obrigatório:
+  - Classifica o produto
+  - Usado para organização e relatórios
+  - Exemplos: Bebidas, Carnes, Hortifruti
+  - Deve ser selecionada de lista existente
+end note
+
+note left of UC_Supplier
+  **Fornecedor**
+  
+  Campo obrigatório:
+  - Identifica origem do produto
+  - Usado para gestão de compras
+  - Permite rastreamento
+  - Deve ser selecionado de lista existente
+end note
+
+note right of UC_PurchasePrice
+  **Preço de Compra**
+  
+  Campo obrigatório:
+  - Preço pelo qual o supermercado compra
+  - Usado para cálculo de lucro
+  - Deve ser maior que zero
+  - Formato: R$ X.XXX,XX
+  - Usado para controle de custos
+end note
+
+note right of UC_SalePrice
+  **Preço de Venda**
+  
+  Campo obrigatório:
+  - Preço pelo qual o supermercado vende
+  - Usado para geração de receita
+  - Deve ser maior que zero
+  - Formato: R$ X.XXX,XX
+  - Pode ser menor que preço de compra
+    (geral com alerta)
+end note
+
+note right of UC_Stock
+  **Estoque Inicial**
+  
+  Campo obrigatório:
+  - Quantidade inicial no estoque
+  - Deve ser zero ou maior
+  - Define estoque disponível no cadastro
+  - Será atualizado por operações de
+    entrada/saída
+end note
+
+note right of UC_MakeAvailable
+  **Disponibilização de Produto**
+  
+  Após cadastro:
+  
+  - Produto fica imediatamente disponível
+  - Aparece na lista de produtos
+  - Pode ser usado em operações de estoque
+  - Pode ser usado em vendas
+  - Pode ser editado ou excluído
+  - Histórico é mantido
+end note
+
+@enduml
+
