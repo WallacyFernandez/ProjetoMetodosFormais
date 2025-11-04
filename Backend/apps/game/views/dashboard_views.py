@@ -109,7 +109,10 @@ class GameDashboardViewSet(viewsets.ViewSet):
         """Retorna histórico de lucros mensais brutos."""
         try:
             # Busca transações de receitas (vendas) e despesas (compras)
-            transactions = Transaction.objects.filter(user=request.user)
+            transactions = Transaction.objects.filter(
+                user=request.user,
+                is_active=True
+            )
             
             # Calcula lucros mensais
             monthly_data = []

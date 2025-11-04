@@ -247,7 +247,10 @@ class TransactionViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Retorna apenas as transações do usuário autenticado."""
-        queryset = Transaction.objects.filter(user=self.request.user)
+        queryset = Transaction.objects.filter(
+            user=self.request.user,
+            is_active=True
+        )
         
         # Filtros adicionais por query params
         year = self.request.query_params.get('year')
@@ -332,7 +335,30 @@ class TransactionViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def dashboard_data(self, request):
         """Retorna dados completos para o dashboard."""
+        # Verificar se há uma sessão de jogo ativa para usar a data do jogo
+        from apps.game.models import GameSession
+        
         current_date = timezone.now()
+        
+        try:
+            game_session = GameSession.objects.filter(
+                user=request.user,
+                status='ACTIVE'
+            ).first()
+            
+            if game_session:
+                # Usar data do jogo se houver sessão ativa
+                summary_date = game_session.current_game_date
+                summary_year = summary_date.year
+                summary_month = summary_date.month
+            else:
+                # Usar data real se não houver sessão de jogo
+                summary_year = current_date.year
+                summary_month = current_date.month
+        except Exception:
+            # Em caso de erro, usar data real
+            summary_year = current_date.year
+            summary_month = current_date.month
         
         # Saldo atual
         balance, _ = UserBalance.objects.get_or_create(
@@ -343,30 +369,35 @@ class TransactionViewSet(viewsets.ModelViewSet):
         # Resumo mensal atual
         monthly_summary = Transaction.get_monthly_summary(
             request.user, 
-            current_date.year, 
-            current_date.month
+            summary_year, 
+            summary_month
         )
         
         # Resumo por categoria
         category_summary = Transaction.get_category_summary(
             request.user, 
-            current_date.year, 
-            current_date.month
+            summary_year, 
+            summary_month
         )
         
         # Transações recentes
         recent_transactions = Transaction.objects.filter(
-            user=request.user
+            user=request.user,
+            is_active=True
         ).order_by('-transaction_date', '-created_at')[:5]
         
         # Estatísticas gerais
-        total_transactions = Transaction.objects.filter(user=request.user).count()
+        total_transactions = Transaction.objects.filter(
+            user=request.user,
+            is_active=True
+        ).count()
         
         # Média mensal (últimos 6 meses)
         six_months_ago = current_date - timezone.timedelta(days=180)
         monthly_averages = Transaction.objects.filter(
             user=request.user,
-            transaction_date__gte=six_months_ago
+            transaction_date__gte=six_months_ago,
+            is_active=True
         ).values('transaction_type').annotate(
             avg_amount=models.Avg('amount')
         )

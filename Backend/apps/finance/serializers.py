@@ -214,15 +214,27 @@ class MonthlySummarySerializer(serializers.Serializer):
     
     year = serializers.IntegerField()
     month = serializers.IntegerField()
-    income_total = serializers.DecimalField(max_digits=12, decimal_places=2)
-    expense_total = serializers.DecimalField(max_digits=12, decimal_places=2)
-    balance = serializers.DecimalField(max_digits=12, decimal_places=2)
+    income_total = serializers.SerializerMethodField()
+    expense_total = serializers.SerializerMethodField()
+    balance = serializers.SerializerMethodField()
     transaction_count = serializers.IntegerField()
     
     # Campos formatados
     income_total_formatted = serializers.SerializerMethodField()
     expense_total_formatted = serializers.SerializerMethodField()
     balance_formatted = serializers.SerializerMethodField()
+    
+    def get_income_total(self, obj):
+        """Retorna income_total como float."""
+        return float(obj['income_total'])
+    
+    def get_expense_total(self, obj):
+        """Retorna expense_total como float."""
+        return float(obj['expense_total'])
+    
+    def get_balance(self, obj):
+        """Retorna balance como float."""
+        return float(obj['balance'])
     
     def get_income_total_formatted(self, obj):
         return f"R$ {obj['income_total']:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.')

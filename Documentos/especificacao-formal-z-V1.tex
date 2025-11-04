@@ -1,0 +1,665 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[portuguese]{babel}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{z-eves}
+\usepackage{graphicx}
+
+\title{Especificação Formal em Notação Z\\Sistema de Gestão Financeira e Simulação de Supermercado}
+\author{Projeto Métodos Formais}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Definições de Tipos Básicos}
+
+\begin{zed}
+[IDUSUARIO, IDSESSAO, IDPRODUTO, IDCATEGORIA, IDFORNECEDOR, IDTRANSACAO, IDHISTORICO, IDFUNCIONARIO, IDCARGO, IDFOLHA, IDVENDA] \\
+[EMAIL, SENHA, NOME, CPF, TOKEN, DESCRICAO] \\
+VALOR == \mathbb{N}_1 \\
+QUANTIDADE == \mathbb{N} \\
+DATA == \mathbb{N} \times \mathbb{N} \times \mathbb{N} \\
+TIMESTAMP == \mathbb{N}
+\end{zed}
+
+\section{Definições de Enumerados}
+
+\begin{zed}
+STATUS\_JOGO ::= NOT\_STARTED | ACTIVE | PAUSED | COMPLETED | FAILED \\
+TIPO\_TRANSACAO ::= RECEITA | DESPESA \\
+OPERACAO\_ESTOQUE ::= COMPRA | VENDA | AJUSTE | PERDA \\
+STATUS\_FUNCIONARIO ::= ATIVO | INATIVO | AFastado | DEMITIDO \\
+CATEGORIA\_TRANSACAO ::= VENDA | COMPRA | SALARIO | OUTROS
+\end{zed}
+
+\section{Esquemas de Estado}
+
+\subsection{Sistema Global}
+
+\begin{schema}{SistemaGlobal}
+usuarios: \power IDUSUARIO \\
+sessoes\_jogo: \power IDSESSAO \\
+produtos: \power IDPRODUTO \\
+categorias: \power IDCATEGORIA \\
+fornecedores: \power IDFORNECEDOR \\
+funcionarios: \power IDFUNCIONARIO \\
+cargos: \power IDCARGO \\
+transacoes: \power IDTRANSACAO \\
+historico\_estoque: \power IDHISTORICO \\
+vendas\_realtime: \power IDVENDA \\
+folhas\_pagamento: \power IDFOLHA
+\end{schema}
+
+\subsection{Usuário}
+
+\begin{schema}{UsuarioSchema}
+id\_usuario: IDUSUARIO \\
+nome: NOME \\
+email: EMAIL \\
+senha: SENHA \\
+saldo\_atual: \mathbb{Z} \\
+data\_criacao: TIMESTAMP
+\end{schema}
+
+\subsection{Sessão de Jogo}
+
+\begin{schema}{JogoSchema}
+id\_sessao: IDSESSAO \\
+usuario: IDUSUARIO \\
+data\_inicio\_jogo: DATA \\
+data\_atual\_jogo: DATA \\
+data\_fim\_jogo: DATA \\
+status: STATUS\_JOGO \\
+aceleracao\_tempo: \mathbb{N}_1 \\
+meta\_vendas\_diarias: \mathbb{N}_1 \\
+vendas\_automaticas\_habilitadas: \mathbb{B} \\
+session\_start\_time: TIMESTAMP \\
+last\_update\_time: TIMESTAMP
+\end{schema}
+
+\subsection{Produto}
+
+\begin{schema}{ProdutoSchema}
+id\_produto: IDPRODUTO \\
+nome: NOME \\
+categoria: IDCATEGORIA \\
+fornecedor: IDFORNECEDOR \\
+preco\_compra: VALOR \\
+preco\_venda: VALOR \\
+estoque\_atual: QUANTIDADE \\
+estoque\_minimo: QUANTIDADE \\
+estoque\_maximo: QUANTIDADE \\
+ativo: \mathbb{B} \\
+is\_promocional: \mathbb{B} \\
+preco\_promocional: \maybe VALOR \\
+promocional\_start\_date: \maybe DATA \\
+promocional\_end\_date: \maybe DATA
+\end{schema}
+
+\subsection{Categoria de Produto}
+
+\begin{schema}{CategoriaSchema}
+id\_categoria: IDCATEGORIA \\
+nome: NOME \\
+descricao: \maybe DESCRICAO
+\end{schema}
+
+\subsection{Fornecedor}
+
+\begin{schema}{FornecedorSchema}
+id\_fornecedor: IDFORNECEDOR \\
+nome: NOME \\
+contato: \maybe EMAIL \\
+confiabilidade: \mathbb{N}
+\end{schema}
+
+\subsection{Transação Financeira}
+
+\begin{schema}{TransacaoSchema}
+id\_transacao: IDTRANSACAO \\
+usuario: IDUSUARIO \\
+tipo: TIPO\_TRANSACAO \\
+valor: VALOR \\
+categoria: CATEGORIA\_TRANSACAO \\
+data\_transacao: DATA \\
+descricao: \maybe DESCRICAO
+\end{schema}
+
+\subsection{Histórico de Estoque}
+
+\begin{schema}{HistoricoEstoqueSchema}
+id\_historico: IDHISTORICO \\
+produto: IDPRODUTO \\
+operacao: OPERACAO\_ESTOQUE \\
+quantidade: QUANTIDADE \\
+estoque\_anterior: QUANTIDADE \\
+estoque\_novo: QUANTIDADE \\
+data\_operacao: DATA
+\end{schema}
+
+\subsection{Venda em Tempo Real}
+
+\begin{schema}{VendaRealtimeSchema}
+id\_venda: IDVENDA \\
+sessao: IDSESSAO \\
+produto: IDPRODUTO \\
+quantidade: QUANTIDADE \\
+valor\_total: VALOR \\
+data\_venda: DATA \\
+hora\_venda: TIMESTAMP
+\end{schema}
+
+\subsection{Funcionário}
+
+\begin{schema}{FuncionarioSchema}
+id\_funcionario: IDFUNCIONARIO \\
+usuario: IDUSUARIO \\
+nome: NOME \\
+cpf: CPF \\
+cargo: IDCARGO \\
+salario: VALOR \\
+data\_contratacao: DATA \\
+status: STATUS\_FUNCIONARIO \\
+data\_demissao: \maybe DATA
+\end{schema}
+
+\subsection{Cargo}
+
+\begin{schema}{CargoSchema}
+id\_cargo: IDCARGO \\
+nome: NOME \\
+departamento: NOME \\
+salario\_minimo: VALOR \\
+salario\_maximo: VALOR
+\end{schema}
+
+\subsection{Folha de Pagamento}
+
+\begin{schema}{FolhaPagamentoSchema}
+id\_folha: IDFOLHA \\
+usuario: IDUSUARIO \\
+mes\_referencia: DATA \\
+data\_processamento: TIMESTAMP \\
+valor\_total: VALOR \\
+funcionarios\_pagos: \power IDFUNCIONARIO
+\end{schema}
+
+\section{Invariantes do Sistema}
+
+\begin{schema}{SistemaGlobalInvariantes}
+SistemaGlobal
+\where
+\forall u: usuarios @ \exists us: UsuarioSchema @ us.id\_usuario = u \land us.saldo\_atual \geq 0 \\
+\forall s: sessoes\_jogo @ \exists js: JogoSchema @ js.id\_sessao = s \\
+\forall p: produtos @ \exists ps: ProdutoSchema @ ps.id\_produto = p \land ps.estoque\_atual \geq 0 \\
+\forall s: sessoes\_jogo @ \exists js: JogoSchema @ js.id\_sessao = s \land js.data\_atual\_jogo \geq js.data\_inicio\_jogo \\
+\forall s: sessoes\_jogo @ \exists js: JogoSchema @ js.id\_sessao = s \land js.data\_atual\_jogo \leq js.data\_fim\_jogo \\
+\forall p: produtos @ \exists ps: ProdutoSchema @ ps.id\_produto = p \land ps.preco\_venda \geq ps.preco\_compra \\
+\forall p: produtos @ \exists ps: ProdutoSchema @ ps.id\_produto = p \land ps.estoque\_minimo \leq ps.estoque\_atual \leq ps.estoque\_maximo \\
+\forall f: funcionarios @ \exists fs: FuncionarioSchema @ fs.id\_funcionario = f \\
+\forall f: funcionarios @ \exists fs: FuncionarioSchema; cs: CargoSchema @ \\
+\quad fs.id\_funcionario = f \land fs.cargo = cs.id\_cargo \land cs.salario\_minimo \leq fs.salario \leq cs.salario\_maximo
+\end{schema}
+
+\section{Esquemas de Inicialização}
+
+\begin{schema}{InitSistema}
+SistemaGlobal'
+\where
+usuarios' = \emptyset \\
+sessoes\_jogo' = \emptyset \\
+produtos' = \emptyset \\
+categorias' = \emptyset \\
+fornecedores' = \emptyset \\
+funcionarios' = \emptyset \\
+cargos' = \emptyset \\
+transacoes' = \emptyset \\
+historico\_estoque' = \emptyset \\
+vendas\_realtime' = \emptyset \\
+folhas\_pagamento' = \emptyset
+\end{schema}
+
+\begin{schema}{InitUsuario}
+UsuarioSchema' \\
+\Xi SistemaGlobal
+\where
+id\_usuario' \notin usuarios \\
+saldo\_atual' = 10000 \\
+usuarios' = usuarios \cup \{id\_usuario'\}
+\end{schema}
+
+\begin{schema}{InitJogo}
+JogoSchema' \\
+\Xi SistemaGlobal
+\where
+id\_sessao' \notin sessoes\_jogo \\
+status' = NOT\_STARTED \\
+aceleracao\_tempo' = 3600 \\
+meta\_vendas\_diarias' = 50 \\
+vendas\_automaticas\_habilitadas' = true \\
+sessoes\_jogo' = sessoes\_jogo \cup \{id\_sessao'\}
+\end{schema}
+
+\section{Operações de Autenticação}
+
+\subsection{Login de Usuário}
+
+\begin{schema}{LoginUsuario}
+\Delta SistemaGlobal \\
+\Delta UsuarioSchema \\
+email? : EMAIL \\
+senha? : SENHA \\
+token! : TOKEN \\
+\where
+\exists us: UsuarioSchema @ us.email = email? \land us.senha = senha? \\
+usuario' = usuario \\
+token! = gerar\_token(us.id\_usuario)
+\end{schema}
+
+\subsection{Alterar Senha}
+
+\begin{schema}{AlterarSenha}
+\Delta UsuarioSchema \\
+\Delta SistemaGlobal \\
+usuario\_id? : IDUSUARIO \\
+senha\_atual? : SENHA \\
+nova\_senha? : SENHA \\
+result! : \mathbb{B}
+\where
+\exists us: UsuarioSchema @ us.id\_usuario = usuario\_id? \land us.senha = senha\_atual? \\
+|nova\_senha?| \geq 8 \\
+senha' = nova\_senha? \\
+result! = true
+\end{schema}
+
+\subsection{Logout}
+
+\begin{schema}{LogoutUsuario}
+\Xi SistemaGlobal \\
+\Xi UsuarioSchema \\
+usuario\_id? : IDUSUARIO \\
+token? : TOKEN
+\where
+\exists us: UsuarioSchema @ us.id\_usuario = usuario\_id? \\
+invalidar\_token(token?)
+\end{schema}
+
+\subsection{Obter Informações do Usuário}
+
+\begin{schema}{ObterInformacoesUsuario}
+\Xi SistemaGlobal \\
+\Xi UsuarioSchema \\
+usuario\_id? : IDUSUARIO \\
+token? : TOKEN \\
+dados! : UsuarioSchema
+\where
+\exists us: UsuarioSchema @ us.id\_usuario = usuario\_id? \\
+validar\_token(token?) \\
+dados! = us
+\end{schema}
+
+\subsection{Atualizar Token}
+
+\begin{schema}{AtualizarToken}
+\Xi SistemaGlobal \\
+\Xi UsuarioSchema \\
+refresh\_token? : TOKEN \\
+novo\_token! : TOKEN
+\where
+validar\_refresh\_token(refresh\_token?) \\
+novo\_token! = gerar\_token(usuario\_id)
+\end{schema}
+
+\section{Operações de Produto}
+
+\subsection{Adicionar Produto}
+
+\begin{schema}{AdicionarProduto}
+\Delta SistemaGlobal \\
+\Delta ProdutoSchema \\
+\Delta CategoriaSchema \\
+\Delta FornecedorSchema \\
+dados? : ProdutoSchema \\
+id\_produto! : IDPRODUTO
+\where
+dados?.categoria \in categorias \\
+dados?.fornecedor \in fornecedores \\
+id\_produto! \notin produtos \\
+produtos' = produtos \cup \{id\_produto!\}
+\end{schema}
+
+\subsection{Remover Produto do Estoque}
+
+\begin{schema}{RemoverProduto}
+\Delta SistemaGlobal \\
+\Delta ProdutoSchema \\
+\Delta HistoricoEstoqueSchema \\
+id\_produto? : IDPRODUTO \\
+quantidade? : QUANTIDADE \\
+id\_historico! : IDHISTORICO
+\where
+\exists ps: ProdutoSchema @ ps.id\_produto = id\_produto? \land ps.estoque\_atual \geq quantidade? \\
+estoque\_atual' = estoque\_atual - quantidade? \\
+id\_historico! \notin historico\_estoque \\
+historico\_estoque' = historico\_estoque \cup \{id\_historico!\}
+\end{schema}
+
+\subsection{Aplicar Promoção}
+
+\begin{schema}{AplicarPromocao}
+\Delta ProdutoSchema \\
+id\_produto? : IDPRODUTO \\
+preco\_promocional? : VALOR \\
+data\_inicio? : DATA \\
+data\_fim? : DATA
+\where
+\exists ps: ProdutoSchema @ ps.id\_produto = id\_produto? \\
+data\_inicio? < data\_fim? \\
+preco\_promocional? < preco\_venda \lor preco\_promocional? = preco\_venda \\
+is\_promocional' = true \\
+preco\_promocional' = preco\_promocional? \\
+promocional\_start\_date' = data\_inicio? \\
+promocional\_end\_date' = data\_fim?
+\end{schema}
+
+\subsection{Verificar Alertas de Estoque}
+
+\begin{schema}{VerificarAlertasEstoque}
+\Xi SistemaGlobal \\
+\Xi ProdutoSchema \\
+produtos\_alerta! : \power IDPRODUTO
+\where
+produtos\_alerta! = \{p: produtos | \exists ps: ProdutoSchema @ \\
+\quad ps.id\_produto = p \land ps.estoque\_atual < ps.estoque\_minimo\}
+\end{schema}
+
+\subsection{Calcular Margem de Lucro}
+
+\begin{schema}{CalcularMargemLucro}
+\Xi ProdutoSchema \\
+id\_produto? : IDPRODUTO \\
+margem! : \mathbb{R}
+\where
+\exists ps: ProdutoSchema @ ps.id\_produto = id\_produto? \\
+preco\_venda > 0 \implies margem! = ((preco\_venda - preco\_compra) / preco\_venda) \times 100 \\
+preco\_venda = 0 \implies margem! = 0
+\end{schema}
+
+\section{Operações Financeiras}
+
+\subsection{Processar Venda}
+
+\begin{schema}{ProcessarVenda}
+\Delta SistemaGlobal \\
+\Delta ProdutoSchema \\
+\Delta TransacaoSchema \\
+\Delta HistoricoEstoqueSchema \\
+\Delta VendaRealtimeSchema \\
+\Delta UsuarioSchema \\
+\Delta JogoSchema \\
+id\_produto? : IDPRODUTO \\
+quantidade? : QUANTIDADE \\
+id\_sessao? : IDSESSAO \\
+id\_transacao! : IDTRANSACAO \\
+id\_venda! : IDVENDA \\
+valor\_total! : VALOR
+\where
+\exists ps: ProdutoSchema @ ps.id\_produto = id\_produto? \land ps.ativo = true \\
+\exists ps: ProdutoSchema @ ps.id\_produto = id\_produto? \land ps.estoque\_atual \geq quantidade? \\
+\exists js: JogoSchema @ js.id\_sessao = id\_sessao? \land js.status = ACTIVE \\
+preco\_usado = (\text{if } ps.is\_promocional \text{ then } ps.preco\_promocional \text{ else } ps.preco\_venda) \\
+valor\_total! = preco\_usado \times quantidade? \\
+estoque\_atual' = estoque\_atual - quantidade? \\
+saldo\_atual' = saldo\_atual + valor\_total! \\
+id\_transacao! \notin transacoes \\
+id\_venda! \notin vendas\_realtime
+\end{schema}
+
+\subsection{Atualizar Saldo}
+
+\begin{schema}{AtualizarSaldo}
+\Delta SistemaGlobal \\
+\Delta UsuarioSchema \\
+\Delta TransacaoSchema \\
+usuario\_id? : IDUSUARIO \\
+valor? : VALOR \\
+tipo\_operacao? : TIPO\_TRANSACAO \\
+id\_transacao! : IDTRANSACAO \\
+novo\_saldo! : \mathbb{Z}
+\where
+\exists us: UsuarioSchema @ us.id\_usuario = usuario\_id? \\
+id\_transacao! \notin transacoes \\
+tipo\_operacao? = RECEITA \implies saldo\_atual' = saldo\_atual + valor? \\
+tipo\_operacao? = DESPESA \implies saldo\_atual' = saldo\_atual - valor? \\
+novo\_saldo! = saldo\_atual' \\
+saldo\_atual' \geq 0
+\end{schema}
+
+\section{Operações de Jogo}
+
+\subsection{Criar Sessão de Jogo}
+
+\begin{schema}{CriarSessaoJogo}
+\Delta SistemaGlobal \\
+\Delta JogoSchema \\
+\Xi UsuarioSchema \\
+usuario\_id? : IDUSUARIO \\
+id\_sessao! : IDSESSAO
+\where
+\exists us: UsuarioSchema @ us.id\_usuario = usuario\_id? \\
+\neg \exists js: JogoSchema @ js.usuario = usuario\_id? \land js.status \in \{ACTIVE, PAUSED\} \\
+id\_sessao! \notin sessoes\_jogo \\
+sessoes\_jogo' = sessoes\_jogo \cup \{id\_sessao!\} \\
+status' = NOT\_STARTED
+\end{schema}
+
+\subsection{Avançar Tempo do Jogo}
+
+\begin{schema}{AvancarTempoJogo}
+\Delta SistemaGlobal \\
+\Delta JogoSchema \\
+id\_sessao? : IDSESSAO \\
+tempo\_real\_decorrido? : TIMESTAMP \\
+dias\_jogo\_passados! : \mathbb{N}
+\where
+\exists js: JogoSchema @ js.id\_sessao = id\_sessao? \land js.status = ACTIVE \\
+dias\_jogo\_passados! = (tempo\_real\_decorrido? - last\_update\_time) / aceleracao\_tempo \\
+data\_atual\_jogo' = data\_atual\_jogo + dias\_jogo\_passados! \\
+data\_atual\_jogo' \leq data\_fim\_jogo \\
+last\_update\_time' = tempo\_real\_decorrido? \\
+data\_atual\_jogo' = data\_fim\_jogo \implies status' = COMPLETED
+\end{schema}
+
+\subsection{Processar Vendas Automáticas}
+
+\begin{schema}{ProcessarVendasAutomaticas}
+\Delta SistemaGlobal \\
+\Delta JogoSchema \\
+\Delta VendaRealtimeSchema \\
+\Delta ProdutoSchema \\
+\Delta UsuarioSchema \\
+\Delta TransacaoSchema \\
+id\_sessao? : IDSESSAO \\
+dias\_passados? : \mathbb{N} \\
+vendas\_processadas! : \mathbb{N}
+\where
+\exists js: JogoSchema @ js.id\_sessao = id\_sessao? \land js.status = ACTIVE \\
+vendas\_automaticas\_habilitadas = true \\
+vendas\_processadas! = dias\_passados? \times meta\_vendas\_diarias \\
+\forall i: 1..vendas\_processadas! @ \exists produto\_aleatorio: IDPRODUTO @ \\
+\quad produto\_aleatorio \in produtos \land processar\_venda\_automatica(produto\_aleatorio, id\_sessao?)
+\end{schema}
+
+\subsection{Controle de Status do Jogo}
+
+\begin{schema}{AlterarStatusJogo}
+\Delta JogoSchema \\
+id\_sessao? : IDSESSAO \\
+novo\_status? : STATUS\_JOGO
+\where
+\exists js: JogoSchema @ js.id\_sessao = id\_sessao? \\
+status \notin \{COMPLETED, FAILED\} \\
+status' = novo\_status?
+\end{schema}
+
+\subsection{Resetar Jogo}
+
+\begin{schema}{ResetarJogo}
+\Delta SistemaGlobal \\
+\Delta JogoSchema \\
+\Delta UsuarioSchema \\
+\Delta ProdutoSchema \\
+\Delta TransacaoSchema \\
+\Delta HistoricoEstoqueSchema \\
+id\_sessao? : IDSESSAO \\
+usuario\_id? : IDUSUARIO
+\where
+\exists js: JogoSchema @ js.id\_sessao = id\_sessao? \land js.usuario = usuario\_id? \\
+saldo\_atual' = 10000 \\
+estoque\_atual' = estoque\_inicial \\
+data\_atual\_jogo' = data\_inicio\_jogo \\
+status' = NOT\_STARTED \\
+transacoes' = \emptyset \\
+historico\_estoque' = \emptyset
+\end{schema}
+
+\subsection{Calcular Progresso e Pontuação}
+
+\begin{schema}{CalcularProgressoPontuacao}
+\Xi JogoSchema \\
+id\_sessao? : IDSESSAO \\
+progresso! : \mathbb{R} \\
+pontuacao! : \mathbb{N}
+\where
+\exists js: JogoSchema @ js.id\_sessao = id\_sessao? \\
+dias\_total = data\_fim\_jogo - data\_inicio\_jogo \\
+dias\_decorridos = data\_atual\_jogo - data\_inicio\_jogo \\
+dias\_total > 0 \implies progresso! = (dias\_decorridos / dias\_total) \times 100 \\
+dias\_total = 0 \implies progresso! = 0 \\
+pontuacao! = dias\_decorridos
+\end{schema}
+
+\section{Operações de Funcionários}
+
+\subsection{Cadastrar Funcionário}
+
+\begin{schema}{CadastrarFuncionario}
+\Delta SistemaGlobal \\
+\Delta FuncionarioSchema \\
+\Delta CargoSchema \\
+\Xi UsuarioSchema \\
+dados? : FuncionarioSchema \\
+id\_funcionario! : IDFUNCIONARIO
+\where
+\exists us: UsuarioSchema @ us.id\_usuario = dados?.usuario \\
+\exists cs: CargoSchema @ cs.id\_cargo = dados?.cargo \\
+cs.salario\_minimo \leq dados?.salario \leq cs.salario\_maximo \\
+\neg \exists fs: FuncionarioSchema @ fs.cpf = dados?.cpf \\
+id\_funcionario! \notin funcionarios \\
+funcionarios' = funcionarios \cup \{id\_funcionario!\}
+\end{schema}
+
+\subsection{Demitir Funcionário}
+
+\begin{schema}{DemitirFuncionario}
+\Delta FuncionarioSchema \\
+id\_funcionario? : IDFUNCIONARIO \\
+data\_demissao? : DATA
+\where
+\exists fs: FuncionarioSchema @ fs.id\_funcionario = id\_funcionario? \\
+status = ATIVO \\
+status' = DEMITIDO \\
+data\_demissao' = data\_demissao?
+\end{schema}
+
+\subsection{Reativar Funcionário}
+
+\begin{schema}{ReativarFuncionario}
+\Delta FuncionarioSchema \\
+id\_funcionario? : IDFUNCIONARIO
+\where
+\exists fs: FuncionarioSchema @ fs.id\_funcionario = id\_funcionario? \\
+status = DEMITIDO \\
+status' = ATIVO \\
+data\_demissao' = \nil
+\end{schema}
+
+\subsection{Processar Folha de Pagamento}
+
+\begin{schema}{ProcessarFolhaPagamento}
+\Delta SistemaGlobal \\
+\Delta FolhaPagamentoSchema \\
+\Delta UsuarioSchema \\
+\Delta TransacaoSchema \\
+usuario\_id? : IDUSUARIO \\
+mes\_referencia? : DATA \\
+id\_folha! : IDFOLHA
+\where
+\exists us: UsuarioSchema @ us.id\_usuario = usuario\_id? \\
+\neg \exists fp: FolhaPagamentoSchema @ fp.usuario = usuario\_id? \land fp.mes\_referencia = mes\_referencia? \\
+funcionarios\_ativos = \{f: funcionarios | \exists fs: FuncionarioSchema @ \\
+\quad fs.id\_funcionario = f \land fs.usuario = usuario\_id? \land fs.status = ATIVO\} \\
+valor\_total = \sum \{f: funcionarios\_ativos @ fs.salario\} \\
+saldo\_atual \geq valor\_total \\
+id\_folha! \notin folhas\_pagamento \\
+saldo\_atual' = saldo\_atual - valor\_total \\
+folhas\_pagamento' = folhas\_pagamento \cup \{id\_folha!\}
+\end{schema}
+
+\section{Operações de Relatórios}
+
+\subsection{Gerar Relatórios de Vendas}
+
+\begin{schema}{GerarRelatoriosVendas}
+\Xi SistemaGlobal \\
+\Xi VendaRealtimeSchema \\
+\Xi ProdutoSchema \\
+\Xi TransacaoSchema \\
+usuario\_id? : IDUSUARIO \\
+produtos\_mais\_vendidos! : \seq IDPRODUTO \\
+receita\_total! : VALOR \\
+vendas\_recentes! : \seq IDVENDA
+\where
+vendas\_do\_usuario = \{v: vendas\_realtime | \exists vs: VendaRealtimeSchema; js: JogoSchema @ \\
+\quad vs.id\_venda = v \land vs.sessao = js.id\_sessao \land js.usuario = usuario\_id?\} \\
+receita\_total! = \sum \{v: vendas\_do\_usuario @ vs.valor\_total\} \\
+produtos\_mais\_vendidos! = ordenar\_por\_quantidade(vendas\_do\_usuario) \\
+vendas\_recentes! = ordenar\_por\_data(vendas\_do\_usuario)
+\end{schema}
+
+\section{Esquemas de Erro}
+
+\begin{schema}{ErroGenerico}
+\Delta SistemaGlobal \\
+mensagem! : DESCRICAO
+\where
+usuarios' = usuarios \\
+sessoes\_jogo' = sessoes\_jogo \\
+produtos' = produtos
+\end{schema}
+
+\begin{schema}{ErroSaldoInsuficiente}
+ErroGenerico
+\where
+mensagem! = "Saldo insuficiente para realizar operação"
+\end{schema}
+
+\begin{schema}{ErroEstoqueInsuficiente}
+ErroGenerico
+\where
+mensagem! = "Estoque insuficiente para realizar venda"
+\end{schema}
+
+\begin{schema}{ErroAutenticacao}
+ErroGenerico
+\where
+mensagem! = "Credenciais inválidas ou token expirado"
+\end{schema}
+
+\end{document}
+

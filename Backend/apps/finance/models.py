@@ -432,6 +432,8 @@ class Transaction(BaseModel):
 
         transactions = cls.objects.filter(
             user=user,
+            is_active=True
+        ).filter(
             transaction_date__year=year,
             transaction_date__month=month
         )
@@ -470,7 +472,8 @@ class Transaction(BaseModel):
         return cls.objects.filter(
             user=user,
             transaction_date__year=year,
-            transaction_date__month=month
+            transaction_date__month=month,
+            is_active=True
         ).values(
             'category__name',
             'category__icon',
