@@ -16,6 +16,8 @@ import PageHeader from '@/components/molecules/PageHeader'
 import BalanceCard from '@/components/molecules/BalanceManagementCard'
 import BalanceHistoryTable from '@/components/molecules/BalanceHistoryTable'
 import { toast } from 'react-toastify'
+import { getErrorMessage } from '@/utils/httpErrorToast'
+import type { HttpError } from '@/services/httpClient'
 
 interface SaldoContainerProps {
   $isCollapsed: boolean;
@@ -60,9 +62,10 @@ export default function SaldoContainer() {
       ])
       setBalance(balanceData)
       setHistory(historyData)
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao carregar dados:', error)
-      toast.error('Erro ao carregar dados do saldo')
+      const errorMessage = getErrorMessage(error as HttpError, 'Erro ao carregar dados do saldo')
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -81,9 +84,10 @@ export default function SaldoContainer() {
       setBalance(updatedBalance)
       await loadData() // Recarregar histórico
       toast.success('Valor adicionado ao saldo!')
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao adicionar saldo:', error)
-      toast.error('Erro ao adicionar saldo')
+      const errorMessage = getErrorMessage(error as HttpError, 'Erro ao adicionar saldo')
+      toast.error(errorMessage)
     }
   }
 
@@ -96,9 +100,10 @@ export default function SaldoContainer() {
       setBalance(updatedBalance)
       await loadData() // Recarregar histórico
       toast.success('Valor subtraído do saldo!')
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao subtrair saldo:', error)
-      toast.error('Erro ao subtrair saldo')
+      const errorMessage = getErrorMessage(error as HttpError, 'Erro ao subtrair saldo')
+      toast.error(errorMessage)
     }
   }
 
@@ -111,9 +116,10 @@ export default function SaldoContainer() {
       setBalance(updatedBalance)
       await loadData() // Recarregar histórico
       toast.success('Saldo definido com sucesso!')
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao definir saldo:', error)
-      toast.error('Erro ao definir saldo')
+      const errorMessage = getErrorMessage(error as HttpError, 'Erro ao definir saldo')
+      toast.error(errorMessage)
     }
   }
 
@@ -123,9 +129,10 @@ export default function SaldoContainer() {
       setBalance(updatedBalance)
       await loadData() // Recarregar histórico
       toast.success('Saldo resetado com sucesso!')
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao resetar saldo:', error)
-      toast.error('Erro ao resetar saldo')
+      const errorMessage = getErrorMessage(error as HttpError, 'Erro ao resetar saldo')
+      toast.error(errorMessage)
     }
   }
 

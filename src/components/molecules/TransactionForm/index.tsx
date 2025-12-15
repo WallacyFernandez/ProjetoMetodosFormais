@@ -3,9 +3,11 @@
 import React, { useState, useEffect } from "react";
 import { styled } from "styled-components";
 import { MdAdd, MdEdit, MdClose } from "react-icons/md";
+import { toast } from "react-toastify";
+import { getErrorMessage } from "@/utils/httpErrorToast";
+import type { HttpError } from "@/services/httpClient";
 import type { TransactionCreate, Category, Transaction } from "@/types/finance";
 import CategoryDropdown from "@/components/molecules/CategoryDropdown";
-import { toast } from "react-toastify";
 
 interface TransactionFormProps {
   categories: Category[];
@@ -218,8 +220,13 @@ export default function TransactionForm({
         transaction_date: new Date().toISOString().split("T")[0],
         is_recurring: false,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro no formulário:", error);
+      // Se for erro do backend, exibe mensagem específica
+      if (error.status) {
+        const errorMessage = getErrorMessage(error as HttpError, 'Erro ao salvar transação. Verifique os dados informados.');
+        toast.error(errorMessage);
+      }
     } finally {
       setLoading(false);
     }

@@ -177,3 +177,5 @@ class Command(BaseCommand):
             '\nExecute: python manage.py test_monthly_summary para verificar'
         )
 
+
+

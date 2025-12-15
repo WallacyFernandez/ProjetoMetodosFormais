@@ -14,6 +14,8 @@ import PageHeader from "@/components/molecules/PageHeader";
 import TransactionForm from "@/components/molecules/TransactionForm";
 import TransactionTable from "@/components/molecules/TransactionTable";
 import { toast } from "react-toastify";
+import { getErrorMessage } from "@/utils/httpErrorToast";
+import type { HttpError } from "@/services/httpClient";
 
 interface TransacoesContainerProps {
   $isCollapsed: boolean;
@@ -64,9 +66,10 @@ export default function TransacoesContainer() {
 
       setTransactions(transactionsData || []);
       setCategories(categoriesData || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao carregar dados:", error);
-      toast.error("Erro ao carregar dados");
+      const errorMessage = getErrorMessage(error as HttpError, "Erro ao carregar dados");
+      toast.error(errorMessage);
       setTransactions([]);
       setCategories([]);
     } finally {
@@ -89,9 +92,11 @@ export default function TransacoesContainer() {
       });
       setShowForm(false);
       toast.success("Transação criada com sucesso!");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao criar transação:", error);
-      toast.error("Erro ao criar transação");
+      const errorMessage = getErrorMessage(error as HttpError, "Erro ao criar transação");
+      toast.error(errorMessage);
+      throw error; // Re-throw para o TransactionForm tratar também
     }
   };
 
@@ -103,9 +108,10 @@ export default function TransacoesContainer() {
         return currentTransactions.filter((t) => t.id !== id);
       });
       toast.success("Transação excluída com sucesso!");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao excluir transação:", error);
-      toast.error("Erro ao excluir transação");
+      const errorMessage = getErrorMessage(error as HttpError, "Erro ao excluir transação");
+      toast.error(errorMessage);
     }
   };
 

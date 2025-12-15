@@ -3,6 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { styled } from "styled-components";
 import { MdAdd, MdEdit, MdClose, MdFace } from "react-icons/md";
+import { toast } from "react-toastify";
+import { getErrorMessage } from "@/utils/httpErrorToast";
+import type { HttpError } from "@/services/httpClient";
 import type { Category, CategoryCreate } from "@/types/finance";
 import IconPicker from "@/components/molecules/IconPicker";
 
@@ -256,8 +259,10 @@ export default function CategoryForm({
         color: "#3b82f6",
         category_type: "BOTH",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro no formulário:", error);
+      const errorMessage = getErrorMessage(error as HttpError, 'Erro ao salvar categoria. Verifique os dados informados.');
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

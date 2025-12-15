@@ -14,6 +14,8 @@ import PageHeader from '@/components/molecules/PageHeader'
 import CategoryForm from '@/components/molecules/CategoryForm'
 import CategoryGrid from '@/components/molecules/CategoryGrid'
 import { toast } from 'react-toastify'
+import { getErrorMessage } from '@/utils/httpErrorToast'
+import type { HttpError } from '@/services/httpClient'
 
 interface CategoriasContainerProps {
   $isCollapsed: boolean;
@@ -55,9 +57,10 @@ export default function CategoriasContainer() {
       setLoading(true)
       const categoriesData = await GetCategories()
       setCategories(categoriesData)
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao carregar categorias:', error)
-      toast.error('Erro ao carregar categorias')
+      const errorMessage = getErrorMessage(error as HttpError, 'Erro ao carregar categorias')
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -73,9 +76,11 @@ export default function CategoriasContainer() {
       setCategories(prev => [...prev, newCategory])
       setShowForm(false)
       toast.success('Categoria criada com sucesso!')
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao criar categoria:', error)
-      toast.error('Erro ao criar categoria')
+      const errorMessage = getErrorMessage(error as HttpError, 'Erro ao criar categoria')
+      toast.error(errorMessage)
+      throw error // Re-throw para o CategoryForm tratar também
     }
   }
 
@@ -86,9 +91,11 @@ export default function CategoriasContainer() {
       setShowForm(false)
       setEditingCategory(null)
       toast.success('Categoria atualizada com sucesso!')
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao atualizar categoria:', error)
-      toast.error('Erro ao atualizar categoria')
+      const errorMessage = getErrorMessage(error as HttpError, 'Erro ao atualizar categoria')
+      toast.error(errorMessage)
+      throw error // Re-throw para o CategoryForm tratar também
     }
   }
 
@@ -97,9 +104,10 @@ export default function CategoriasContainer() {
       await DeleteCategory(id)
       setCategories(prev => prev.filter(cat => cat.id !== id))
       toast.success('Categoria excluída com sucesso!')
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao excluir categoria:', error)
-      toast.error('Erro ao excluir categoria')
+      const errorMessage = getErrorMessage(error as HttpError, 'Erro ao excluir categoria')
+      toast.error(errorMessage)
     }
   }
 

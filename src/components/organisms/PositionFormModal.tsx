@@ -2,6 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
+import { toast } from "react-toastify";
+import { getErrorMessage } from "@/utils/httpErrorToast";
+import type { HttpError } from "@/services/httpClient";
 import type { EmployeePosition, DepartmentType } from "@/types/employee";
 
 interface PositionFormModalProps {
@@ -205,8 +208,10 @@ export default function PositionFormModal({
     try {
       await onSubmit(formData);
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error submitting form:", error);
+      const errorMessage = getErrorMessage(error as HttpError, 'Erro ao salvar cargo. Verifique os dados informados.');
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
